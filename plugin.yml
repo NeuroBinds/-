@@ -1,0 +1,21 @@
+name: KingdomCore
+author: EpicSteve33
+main: KingdomCore\Main
+api: [2.0.0]
+version: 0.3
+commands:
+ help:
+  usage: /help or /?
+  description: Help Command
+ hub:
+  usage: /hub
+  description: Main Hub Command
+ flyon:
+  usage: Admins Only
+  description: Admins Only
+ flyoff:
+  usage: Admins Only
+  description: Admins Only
+ heal:
+  usage: Admins Only
+  description: Admins Only

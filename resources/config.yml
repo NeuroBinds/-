@@ -1,0 +1,13 @@
+---
+Dev_Mode: false
+Server-Name-Dev: §bKingdom§cDev
+Server-Name: §bKingdom§9Craft§3
+Hub-Command: §bGoing Back to Spawn..
+Unknown-Command: §cUnknown command. Try /help for a list of commands
+max-caps: 3
+interval: 10
+item1: 264
+item2: 265
+item3: 388
+item4: 406
+...
