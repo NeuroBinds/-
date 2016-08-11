@@ -69,15 +69,14 @@ use pocketmine\block\Block;
 
 class Main extends PluginBase implements Listener{
 
-//  This Plugin was Created by EpicSteve33                          \\
-//  This Plugin was Created to Help add more to KingdomCraft        \\
+//  This Plugin was Created by EpicSteve33                           \\
+//  This Plugin was Created to Help add more to KingdomCraft         \\
 //  This Plugin was not made for any other server then KingdomCraft  \\
  
    private $maxcaps;
    public $interval = 10;
 
    public function onEnable(){
-       $this->saveDefaultConfig();
        $this->interval = $this->getConfig()->get("interval");
        $this->getServer()->getPluginManager()->registerEvents($this ,$this);  
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
@@ -87,6 +86,7 @@ class Main extends PluginBase implements Listener{
        $this->getLogger()->info("Starting KingdomCraft Core");
        $this->getLogger()->info("Done!");
        $this->saveResource("config.yml");
+       $this->saveDefaultConfig();
        //Dev Mode will have more added later 
    if($this->getConfig()->get("Dev_Mode") == "true"){
        $this->getLogger()->info("§cDev Mode is starting up...");
@@ -96,13 +96,12 @@ class Main extends PluginBase implements Listener{
        $this->getServer()->loadLevel("SkyGate"); 
        $this->getServer()->loadLevel("SW3"); 
        $this->getServer()->loadLevel("WoodLand");
-       $this->getServer()->loadLevel("BreezeIsland");
        $this->getLogger()->info("§cDev Mode Loaded!");
     }
    }
    public function loadConfig(){
-        $this->saveDefaultConfig();
-        $this->maxcaps = intval($this->getConfig()->get("max-caps"));
+       $this->saveDefaultConfig();
+       $this->maxcaps = intval($this->getConfig()->get("max-caps"));
    }
    public function onDisable(){
        $this->getLogger()->info("Shutting down KingdomCraft Core");
@@ -127,7 +126,7 @@ class Main extends PluginBase implements Listener{
    public function onJoin(PlayerJoinEvent $event){ 
        $level = $this->getServer()->getLevelByName("hub");
        $player = $event->getPlayer();
-       $player->sendMessage("Welcome,§b " . $player->getName() . " §fto §l§o§bKingdom§9Craft");
+       $player->sendMessage("§fWelcome,§b " .$player->getName(). " §fto §bKingdom§9Craft");
        $player->setMaxHealth(20);
        $player->setHealth(20);
        $player->setFood(20);
@@ -149,16 +148,16 @@ class Main extends PluginBase implements Listener{
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.7, 124),"", "§fYour rank§8: §b{$rank}"), [$event->getPlayer()]);
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.1, 124),"", "§fWe are in beta §7- §bv1§7.§b2"),[$event->getPlayer()]);
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 67.5, 124),"", "§7------------------------------------"));
-   
    }
 
    //Removes need for iProtector
    public function onBlockBreakHub(BlockBreakEvent $event){
-       $player = $event->getPlayer();
+         $player = $event->getPlayer();
    if($player->getLevel()->getName() == "hub" and !$player->isOp()) {
           $event->setCancelled(true);
    }
    elseif($player->getLevel()->getName() == "PVP" and !$player->isOp()) {
+          $player = $event->getPlayer();
           $event->setCancelled(true);
     } 
    }
@@ -168,11 +167,12 @@ class Main extends PluginBase implements Listener{
           $event->setCancelled(true);
    }
    elseif($player->getLevel()->getName() == "PVP" and !$player->isOp()) {
+          $player = $event->getPlayer();
           $event->setCancelled(true);
     } 
    }
    public function GodMode(EntityDamageEvent $event){
-       $player = $event->getPlayer();
+          $player = $event->getEntity();
    if($player->getLevel()->getName() == "hub") {
           $event->setCancelled(true);
     } 
@@ -213,7 +213,7 @@ class Main extends PluginBase implements Listener{
    if($pk instanceof UseItemPacket and $pk->face === 0xff) {
        $item = $player->getInventory()->getItemInHand();
    if($item->getId() == $this->yml["item1"] and $player->getLevel()->getName() == "hub"){
-       $player->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
+       $player->teleport(new Vector3(119, 77, 81));
        $player->getInventory()->clearAll();
    }
    elseif($item->getId() == $this->yml["item2"] and $player->getLevel()->getName() == "hub"){
@@ -353,8 +353,8 @@ class Main extends PluginBase implements Listener{
    if($cmd4[0] === "/heal"){
        $player = $event->getPlayer();
    if($player->isOp()){
-       $player->setMaxHealth(80);
-       $player->setHealth(80);
+       $player->setMaxHealth(50);
+       $player->setHealth(50);
        $event->setCancelled();
       }
      }
@@ -424,7 +424,7 @@ class Main extends PluginBase implements Listener{
        $player->sendMessage("§o§l§f-- §cJoining §bPvP§f --§r");
        $player->setHealth(20);
        $player->setFood(20);
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
+       $player->teleport(new Vector3(119, 77, 81));
        $player->getInventory()->clearAll();
     }
    }
@@ -448,7 +448,7 @@ class Main extends PluginBase implements Listener{
    }
   }
 
-  public function playerKit(PlayerInteractEvent $event){
+  public function playerBasicKit1(PlayerInteractEvent $event){
        $player = $event->getPlayer();
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
             $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
@@ -459,8 +459,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eKnight'){
   if($player->hasPermission("game.kit")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bKnight§c Given§b --");
-       $player->setMaxHealth(80);
-       $player->setHealth(80);
+       $player->setMaxHealth(50);
+       $player->setHealth(50);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(276,0,1));
@@ -472,14 +472,14 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setLeggings(Item::get(308, 0, 1));
        $player->getInventory()->setBoots(Item::get(305, 0, 1));
        $player->getInventory()->sendArmorContents($player);
-       $player->teleport(new Vector3(1719, 9, -1027));
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
        $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
      }
     }
    } 
-  } 
+  }
 
-  public function playerKit2(PlayerInteractEvent $event){
+  public function playerBasicKit2(PlayerInteractEvent $event){
        $player = $event->getPlayer();
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
             $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
@@ -491,8 +491,8 @@ class Main extends PluginBase implements Listener{
   if($player->hasPermission("game.kit")){
        $player->sendMessage("§o§l§b-- §cPvP Kit §bArcher§c Given§b --");
        $player->sendTip("§o§l§b-- §cPvP Kit §bArcher§c Given --");
-       $player->setMaxHealth(80);
-       $player->setHealth(80);
+       $player->setMaxHealth(50);
+       $player->setHealth(50);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -506,7 +506,7 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setLeggings(Item::get(308, 0, 1));
        $player->getInventory()->setBoots(Item::get(305, 0, 1));
        $player->getInventory()->sendArmorContents($player);
-       $player->teleport(new Vector3(1719, 9, -1027));
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
        $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
      }
     }
@@ -524,8 +524,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eSuper'){
   if($player->hasPermission("game.kit.super")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bSuper§c Given§b --");
-       $player->setMaxHealth(80);
-       $player->setHealth(80);
+       $player->setMaxHealth(50);
+       $player->setHealth(50);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -537,7 +537,7 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setLeggings(Item::get(308, 0, 1));
        $player->getInventory()->setBoots(Item::get(313, 0, 1));
        $player->getInventory()->sendArmorContents($player);
-       $player->teleport(new Vector3(1719, 9, -1027));
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
        $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
      }
     }
@@ -555,8 +555,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eSuper+'){
   if($player->hasPermission("game.kit.super+")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bSuper+§c Given§b --");
-       $player->setMaxHealth(80);
-       $player->setHealth(80);
+       $player->setMaxHealth(50);
+       $player->setHealth(50);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -568,7 +568,38 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setLeggings(Item::get(308, 0, 1));
        $player->getInventory()->setBoots(Item::get(313, 0, 1));
        $player->getInventory()->sendArmorContents($player);
-       $player->teleport(new Vector3(1719, 9, -1027));
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
+       $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
+     }
+    }
+   } 
+  }
+
+  public function playerSecretKit(PlayerInteractEvent $event){
+       $player = $event->getPlayer();
+  if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
+            $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
+  if(!($sign instanceof Sign)){
+  return;
+  }
+       $sign = $sign->getText();
+  if($sign[0]=='§eSecretKit'){
+  if($player->hasPermission("game.kit")){
+       $player->sendTip("§o§l§b-- §cPvP Kit §bSecret§c Given§b --");
+       $player->setMaxHealth(50);
+       $player->setHealth(50);
+       $player->setFood(20);
+       $player->getInventory()->clearAll();
+       $player->getInventory()->setItem(0, Item::get(279,0,1));
+       $player->getInventory()->setItem(1, Item::get(466,0,1));
+       $player->getInventory()->setItem(2, Item::get(373,14,1));
+       $player->getInventory()->setItem(3, Item::get(373,31,1));
+       $player->getInventory()->setHelmet(Item::get(302, 0, 1));
+       $player->getInventory()->setChestplate(Item::get(307, 0, 1));
+       $player->getInventory()->setLeggings(Item::get(308, 0, 1));
+       $player->getInventory()->setBoots(Item::get(305, 0, 1));
+       $player->getInventory()->sendArmorContents($player);
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
        $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
      }
     }
@@ -582,4 +613,4 @@ class Main extends PluginBase implements Listener{
        $this->getConfig()->set("max-caps", $this->getMaxCaps());
        $this->getConfig()->save();
    }
-  }
+ }
