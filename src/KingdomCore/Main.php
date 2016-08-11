@@ -69,9 +69,9 @@ use pocketmine\block\Block;
 
 class Main extends PluginBase implements Listener{
 
-//  This Plugin was Created by EpicSteve33                           \\
-//  This Plugin was Created to Help add more to KingdomCraft         \\
-//  This Plugin was not made for any other server then KingdomCraft  \\
+  //  This Plugin was Created  by EpicSteve33                       \\
+ //  This Plugin was Created to Help add more to KingdomCraft        \\
+//  This Plugin was not made for any other server then KingdomCraft   \\
  
    private $maxcaps;
    public $interval = 10;
@@ -80,6 +80,7 @@ class Main extends PluginBase implements Listener{
        $this->interval = $this->getConfig()->get("interval");
        $this->getServer()->getPluginManager()->registerEvents($this ,$this);  
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
+       $this->getServer()->loadLevel("hub"); 
        $this->getServer()->loadLevel("PVP"); 
        $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);
        $this->yml = $yml->getAll();
@@ -120,34 +121,43 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setItem(2, Item::get(264, 0, 1));
        $player->getInventory()->setItem(3, Item::get(265, 0, 1));
        $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(1, 2, 3, 4);
+       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
+       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
+       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
+       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
    }
 
    public function onJoin(PlayerJoinEvent $event){ 
        $level = $this->getServer()->getLevelByName("hub");
        $player = $event->getPlayer();
-       $player->sendMessage("§fWelcome,§b " .$player->getName(). " §fto §bKingdom§9Craft");
+       $player->sendMessage("§fWelcome,§b " .$player->getName(). " §fto §bKingdom§9Craft §fBeta §bv1§7.§b3");
+       //$player->sendMessage("§7------------------------------------\n§7[§bKingdom§9News§7] §fWelcome,§b " .$player->getName(). "\n§fBeta §bv1§7.§b3§f is around the corner for §bKingdom§9Craft§f, \nyou can expect some nice new features to come,\n§fLike a new map for §bKitPvP§f and much more\n§7------------------------------------");
        $player->setMaxHealth(20);
        $player->setHealth(20);
        $player->setFood(20);
        $player->getInventory()->clearAll();
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
+       $level = $this->getServer()->getDefaultLevel();
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.8, 124),"", "§7------------------------------------"));
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.4, 124),"", "§fWelcome, §b{$event->getPlayer()->getName()} §fto §bKingdom§9Craft"), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.1, 124),"", "§fYou are Playing on: §bplay§7.§bkcmcpe§b.§bnet"), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.7, 124),"", "§fWe are in beta §7- §bv1§7.§b3"),[$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.1, 124),"", "§bHope you Enjoy you Stay!"));
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 67.5, 124),"", "§7------------------------------------"));
        $player->getInventory()->setItem(1, Item::get(388, 0, 1));
        $player->getInventory()->setItem(2, Item::get(264, 0, 1));
        $player->getInventory()->setItem(3, Item::get(265, 0, 1));
        $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(1, 2, 3, 4);
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $rank = "Basic";
-       $level = $this->getServer()->getDefaultLevel();
-    if($event->getPlayer()->isOp()){
-       $rank = "Admin";
-   }   
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.8, 124),"", "§7------------------------------------"));
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.4, 124),"", "§fWelcome, §b{$event->getPlayer()->getName()} §fto §bKingdom§9Craft"), [$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.1, 124),"", "§fYou are Playing on: §bplay§7.§bkcmcpe§b.§bnet"), [$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.7, 124),"", "§fYour rank§8: §b{$rank}"), [$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.1, 124),"", "§fWe are in beta §7- §bv1§7.§b2"),[$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 67.5, 124),"", "§7------------------------------------"));
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);     
    }
 
    //Removes need for iProtector
@@ -236,7 +246,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setItem(2, Item::get(264, 0, 1));
        $player->getInventory()->setItem(3, Item::get(265, 0, 1));
        $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
        }
      }
    }
@@ -316,7 +330,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setItem(2, Item::get(264, 0, 1));
        $player->getInventory()->setItem(3, Item::get(265, 0, 1));
        $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
        $event->setCancelled();
         }
       }
@@ -459,8 +477,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eKnight'){
   if($player->hasPermission("game.kit")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bKnight§c Given§b --");
-       $player->setMaxHealth(50);
-       $player->setHealth(50);
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(276,0,1));
@@ -473,7 +491,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setBoots(Item::get(305, 0, 1));
        $player->getInventory()->sendArmorContents($player);
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
      }
     }
    } 
@@ -491,8 +513,8 @@ class Main extends PluginBase implements Listener{
   if($player->hasPermission("game.kit")){
        $player->sendMessage("§o§l§b-- §cPvP Kit §bArcher§c Given§b --");
        $player->sendTip("§o§l§b-- §cPvP Kit §bArcher§c Given --");
-       $player->setMaxHealth(50);
-       $player->setHealth(50);
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -507,7 +529,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setBoots(Item::get(305, 0, 1));
        $player->getInventory()->sendArmorContents($player);
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
      }
     }
    } 
@@ -524,8 +550,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eSuper'){
   if($player->hasPermission("game.kit.super")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bSuper§c Given§b --");
-       $player->setMaxHealth(50);
-       $player->setHealth(50);
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -538,7 +564,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setBoots(Item::get(313, 0, 1));
        $player->getInventory()->sendArmorContents($player);
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
      }
     }
    } 
@@ -555,8 +585,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eSuper+'){
   if($player->hasPermission("game.kit.super+")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bSuper+§c Given§b --");
-       $player->setMaxHealth(50);
-       $player->setHealth(50);
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -569,7 +599,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setBoots(Item::get(313, 0, 1));
        $player->getInventory()->sendArmorContents($player);
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
      }
     }
    } 
@@ -586,8 +620,8 @@ class Main extends PluginBase implements Listener{
   if($sign[0]=='§eSecretKit'){
   if($player->hasPermission("game.kit")){
        $player->sendTip("§o§l§b-- §cPvP Kit §bSecret§c Given§b --");
-       $player->setMaxHealth(50);
-       $player->setHealth(50);
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
        $player->setFood(20);
        $player->getInventory()->clearAll();
        $player->getInventory()->setItem(0, Item::get(279,0,1));
@@ -600,7 +634,11 @@ class Main extends PluginBase implements Listener{
        $player->getInventory()->setBoots(Item::get(305, 0, 1));
        $player->getInventory()->sendArmorContents($player);
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 1, 2, 3, 4);
+       $player->getInventory()->setHotbarSlotIndex(0, 0);
+       $player->getInventory()->setHotbarSlotIndex(1, 1);
+       $player->getInventory()->setHotbarSlotIndex(2, 2);
+       $player->getInventory()->setHotbarSlotIndex(3, 3);
+       $player->getInventory()->setHotbarSlotIndex(4, 4);
      }
     }
    } 
