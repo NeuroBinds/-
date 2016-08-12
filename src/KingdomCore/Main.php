@@ -70,8 +70,8 @@ use pocketmine\block\Block;
 class Main extends PluginBase implements Listener{
 
   //  This Plugin was Created  by EpicSteve33                       \\
- //  This Plugin was Created to Help add more to KingdomCraft        \\
-//  This Plugin was not made for any other server then KingdomCraft   \\
+ //   This Plugin was Created to Help add more to KingdomCraft       \\
+//    This Plugin was not made for any other server then KingdomCraft \\
  
    private $maxcaps;
    public $interval = 10;
@@ -113,23 +113,19 @@ class Main extends PluginBase implements Listener{
    public function onRespawn(PlayerRespawnEvent $event){
        $player = $event->getPlayer();
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $player->setMaxHealth(20);
-       $player->setHealth(20);
-       $player->setFood(20);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
+       $event->getPlayer()->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(3, Item::get(265, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(0, 0);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(1, 1);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(2, 2);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(3, 3);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4); 
+       $event->getPlayer()->setMaxHealth(20);
+       $event->getPlayer()->setHealth(20);
+       $event->getPlayer()->setFood(20); 
    }
 
    public function onJoin(PlayerJoinEvent $event){ 
@@ -137,10 +133,6 @@ class Main extends PluginBase implements Listener{
        $player = $event->getPlayer();
        $player->sendMessage("§fWelcome,§b " .$player->getName(). " §fto §bKingdom§9Craft §fBeta §bv1§7.§b3");
        //$player->sendMessage("§7------------------------------------\n§7[§bKingdom§9News§7] §fWelcome,§b " .$player->getName(). "\n§fBeta §bv1§7.§b3§f is around the corner for §bKingdom§9Craft§f, \nyou can expect some nice new features to come,\n§fLike a new map for §bKitPvP§f and much more\n§7------------------------------------");
-       $player->setMaxHealth(20);
-       $player->setHealth(20);
-       $player->setFood(20);
-       $player->getInventory()->clearAll();
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $level = $this->getServer()->getDefaultLevel();
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.8, 124),"", "§7------------------------------------"));
@@ -149,15 +141,19 @@ class Main extends PluginBase implements Listener{
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.7, 124),"", "§fWe are in beta §7- §bv1§7.§b3"),[$event->getPlayer()]);
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.1, 124),"", "§bHope you Enjoy you Stay!"));
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 67.5, 124),"", "§7------------------------------------"));
-       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);     
+       $event->getPlayer()->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(3, Item::get(265, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(0, 0);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(1, 1);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(2, 2);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(3, 3);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4); 
+       $event->getPlayer()->setMaxHealth(20);
+       $event->getPlayer()->setHealth(20);
+       $event->getPlayer()->setFood(20); 
    }
 
    //Removes need for iProtector
@@ -239,25 +235,27 @@ class Main extends PluginBase implements Listener{
    elseif($item->getId() == $this->yml["item4"] and $player->getLevel()->getName() == "hub"){
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $player->sendMessage($this->getConfig()->get("Hub-Command"));  
-       $player->setMaxHealth(20);
-       $player->setHealth(20);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
+       $event->getPlayer()->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(3, Item::get(265, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(0, 0);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(1, 1);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(2, 2);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(3, 3);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4); 
+       $event->getPlayer()->setMaxHealth(20);
+       $event->getPlayer()->setHealth(20);
+       $event->getPlayer()->setFood(20); 
        }
      }
    }
 
-   public function onToManyCaps(PlayerChatEvent $event){
+   public function onChat(PlayerChatEvent $event){
         $this->maxcaps = intval($this->getConfig()->get("max-caps"));
         $player = $event->getPlayer();
+        $event->setRecipients($player->getLevel()->getPlayers());
         $message = $event->getMessage();
         $strlen = strlen($message);
         $asciiA = ord("A");
@@ -280,13 +278,17 @@ class Main extends PluginBase implements Listener{
         $cause = $event->getEntity()->getLastDamageCause();
   if($cause instanceof EntityDamageByEntityEvent) {
         $player = $event->getEntity();
-        $killer = $cause->getDamager();
         $p = $event->getEntity();
+        $pmh = $player->getMaxHealth();
+        $pth = $player->getHealth();
+        $killer = $cause->getDamager();
+        $kmh = $killer->getMaxHealth();
+        $kth = $killer->getHealth();
   if ($killer instanceof Player){
         $click = new PopSound($killer);
         $event->setDeathMessage("");
-        $player->sendMessage("§bYou were Killed by ". $killer->getName());
-        $killer->sendMessage("§bYou Killed ". $player->getName());
+        $killer->sendMessage("§bYou Killed§f ". $player->getName() .", §bYou had§f ". $pth ."§7/§f". $pmh);
+        $player->sendMessage("§bYou were Killed by§f ". $killer->getName() .", §bThey had§f ". $kth ."§7/§f". $kmh);
         $player->setMaxHealth(20);
         $player->getInventory()->clearAll();
 	}
@@ -320,21 +322,22 @@ class Main extends PluginBase implements Listener{
    public function Hub(PlayerCommandPreprocessEvent $event) {
        $cmd3 = explode(" ", strtolower($event->getMessage()));
        $player = $event->getPlayer();
-   if($cmd3[0] === "/hub"){ 
+   if($cmd3[0] === "/hub" or $cmd3[0] === "/lobby" or $cmd3[0] === "/spawn"){ 
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $player->sendMessage($this->getConfig()->get("Hub-Command")); 
-       $player->setMaxHealth(20);
-       $player->setHealth(20);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
+       $event->getPlayer()->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(3, Item::get(265, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(0, 0);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(1, 1);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(2, 2);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(3, 3);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4); 
+       $event->getPlayer()->setMaxHealth(20);
+       $event->getPlayer()->setHealth(20);
+       $event->getPlayer()->setFood(20);
        $event->setCancelled();
         }
       }
@@ -371,8 +374,8 @@ class Main extends PluginBase implements Listener{
    if($cmd4[0] === "/heal"){
        $player = $event->getPlayer();
    if($player->isOp()){
-       $player->setMaxHealth(50);
-       $player->setHealth(50);
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
        $event->setCancelled();
       }
      }
@@ -382,7 +385,7 @@ class Main extends PluginBase implements Listener{
        $cmdHelp = explode(" ", strtolower($event->getMessage()));
        $player = $event->getPlayer();
    if($cmdHelp[0] === "/help"){ 
-       $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/tell - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to give toher players money\n§b/flyon - §fAdmins only\n§b/flyoff - §fAdmins only");
+       $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/msg - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to pay players money\n§b/flyon - §fAdmins only\n§b/flyoff - §fAdmins only");
        $event->setCancelled();
          }
       }
