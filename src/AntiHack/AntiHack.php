@@ -11,9 +11,7 @@ use AntiHack\AntiHackTick;
 class AntiHack {
 
 	public $hackScore = array();	
-
 	static private $instance;
-
 	private function __construct() {}	
 	private function __clone() {}	
 	public function __destruct() {}
