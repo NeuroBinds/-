@@ -16,7 +16,7 @@ class AntiHackTick extends Task {
 	public function __construct() {
 		$this->plugin = AntiHack::getInstance();
 		$this->serverIp = Server::getInstance()->getIp();
-		$this->serverName = $this->getServerName();
+//		$this->serverName = $this->getServerName();
 		$this->path = Server::getInstance()->getDataPath() . "logs/";
 	}
 
