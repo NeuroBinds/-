@@ -1,4 +1,4 @@
-# KingdomCraft-Core v0.3
+# KingdomCraft-Core v1.3
 
 # Info
 
@@ -19,6 +19,8 @@ Fill free to add but do not remove code (Submit a pull and I will merge it)
 - [x] Add More 
 
 - [x] Make a config 
+
+- [ ] Make AntiHack Work
 
 - [ ] Clean up code 
 
