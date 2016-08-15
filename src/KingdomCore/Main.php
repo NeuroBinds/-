@@ -63,7 +63,7 @@ use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
 use pocketmine\block\Block;
 use onebone\economyapi\EconomyAPI;
-use AntiHack\AntiHack;
+//use AntiHack\AntiHack;//Disabled Until it is Fixed for Genisys
 
 class Main extends PluginBase implements Listener{
 
@@ -77,20 +77,19 @@ class Main extends PluginBase implements Listener{
    public function onEnable(){
        $this->ip = $this->getServer()->getIp();
        $this->interval = $this->getConfig()->get("interval");
-       $this->getServer()->getPluginManager()->registerEvents($this ,$this); 
+       $this->getServer()->getPluginManager()->registerEvents($this ,$this);
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
        $this->getServer()->loadLevel("PVP"); 
        $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);
        $this->yml = $yml->getAll();
        $this->getLogger()->info("Starting KingdomCraft Core");
-       $this->getLogger()->info("Server is running on IP: " . $this->ip);
-       AntiHack::enable($this);
-       $this->getLogger()->info("§aAntiHack Loaded!");
+       //AntiHack::enable($this);//Disabled Until it is Fixed for Genisys
        $this->getLogger()->info("Done!");
        $this->saveResource("config.yml");
        $this->saveDefaultConfig();
    if($this->getConfig()->get("Dev_Mode") == "true"){
        $this->getLogger()->info("§cDev Mode is Starting up...");
+       $this->getLogger()->info("Server is running on IP: " . $this->ip);
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name-Dev"));
        $this->getLogger()->info("§cDev Mode Loaded!");
     }
@@ -136,15 +135,14 @@ class Main extends PluginBase implements Listener{
    public function onJoin(PlayerJoinEvent $event){ 
        $level = $this->getServer()->getLevelByName("hub");
        $player = $event->getPlayer();
-       //$player->sendMessage("§7------------------------------------\n§7[§bKingdom§9News§7] §fWelcome,§b " .$player->getName(). "\n§fBeta §bv1§7.§b3§f is around the corner for §bKingdom§9Craft§f, \nyou can expect some nice new features to come,\n§fLike a new map for §bKitPvP§f and much more\n§7------------------------------------");
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $level = $this->getServer()->getDefaultLevel();
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.8, 124),"", "§7------------------------------------"));
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.8, 124),"", "§7------------------------------------"),[$event->getPlayer()]);
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.4, 124),"", "§fWelcome, §b{$event->getPlayer()->getName()} §fto §bKingdom§9Craft"), [$event->getPlayer()]);
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 69.1, 124),"", "§fYou are Playing on: §bplay§7.§bkcmcpe§b.§bnet"), [$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.7, 124),"", "§fWe are in beta §7- §bv1§7.§b3"),[$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.7, 124),"", "§fWe are in §7- §fBeta §bv1§7.§b3"),[$event->getPlayer()]);
        $level->addParticle(new FloatingTextParticle(new Vector3(129, 68.1, 124),"", "§bHope you Enjoy you Stay!"));
-       $level->addParticle(new FloatingTextParticle(new Vector3(129, 67.5, 124),"", "§7------------------------------------"));
+       $level->addParticle(new FloatingTextParticle(new Vector3(129, 67.5, 124),"", "§7------------------------------------"),[$event->getPlayer()]);
        $event->getPlayer()->getInventory()->clearAll();
        $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
        $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
@@ -196,6 +194,7 @@ class Main extends PluginBase implements Listener{
    }
    public function onDrop(PlayerDropItemEvent $event){
        $player = $event->getPlayer();
+       $level = $event->getPlayer()->getLevel();
        $player->sendTip("§cYou Cannot Drop Items");
        $event->getPlayer()->getLevel()->addSound(new AnvilFallSound($player));
        $event->setCancelled(true);
@@ -207,7 +206,6 @@ class Main extends PluginBase implements Listener{
        $item = $event->getItem()->getId();     
    if($item === $cfg->get("item1") and $player->getLevel()->getName() == "hub"){
        $player->sendPopup("KitPvP");
-       $level->addSound(new AnvilFallSound($player));
    }
    elseif($item === $cfg->get("item2") and $player->getLevel()->getName() == "hub"){
        $player->sendPopup("Help");
@@ -229,6 +227,8 @@ class Main extends PluginBase implements Listener{
    if($item->getId() == $this->yml["item1"] and $player->getLevel()->getName() == "hub"){
        $player->teleport(new Vector3(119, 77, 81));
        $player->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
    }
    elseif($item->getId() == $this->yml["item2"] and $player->getLevel()->getName() == "hub"){
        $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/tell - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to give toher players money\n§b/flyon - §fAdmins only\n§b/flyoff - §fAdmins only");
@@ -239,6 +239,8 @@ class Main extends PluginBase implements Listener{
        $player->setFood(20);
        $player->teleport(new Vector3(134, 77, 81));
        $player->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
    }
    elseif($item->getId() == $this->yml["item4"] and $player->getLevel()->getName() == "hub"){
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
@@ -256,7 +258,6 @@ class Main extends PluginBase implements Listener{
        $event->getPlayer()->setMaxHealth(20);
        $event->getPlayer()->setHealth(20);
        $event->getPlayer()->setFood(20); 
-       $level->addSound(new EndermanTeleportSound($player));
        }
      }
    }
@@ -299,55 +300,7 @@ class Main extends PluginBase implements Listener{
      }
   }
 
-   public function FlyonCommand(PlayerCommandPreprocessEvent $event) {
-       $cmd = explode(" ", strtolower($event->getMessage()));
-   if($cmd[0] === "/flyon"){
-       $player = $event->getPlayer();
-   if($player->isOp()){
-       $player->setAllowFlight(true);
-      $player->sendMessage("§7[§l§o§bKingdom§9Craft§r§7] §3Flight on");
-       $event->setCancelled();
-       }
-      }
-     }
-
-   public function FlyoffCommand(PlayerCommandPreprocessEvent $event) {
-       $cmd = explode(" ", strtolower($event->getMessage()));
-   if($cmd[0] === "/flyoff"){
-       $player = $event->getPlayer();
-   if($player->isOp()){
-       $player->setAllowFlight(false);
-      $player->sendMessage("§7[§l§o§bKingdom§9Craft§r§7] §cFlight off");
-       $event->setCancelled();
-       }
-      }
-     }
-
-   public function Hub(PlayerCommandPreprocessEvent $event) {
-       $cmd3 = explode(" ", strtolower($event->getMessage()));
-       $player = $event->getPlayer();
-       $level = $event->getPlayer()->getLevel();
-   if($cmd3[0] === "/hub" or $cmd3[0] === "/lobby" or $cmd3[0] === "/spawn"){ 
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $player->sendMessage($this->getConfig()->get("Hub-Command")); 
-       $event->getPlayer()->getInventory()->clearAll();
-       $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $event->getPlayer()->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(0, 0);
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(1, 1);
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(2, 2);
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(3, 3);
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4); 
-       $event->getPlayer()->setMaxHealth(20);
-       $event->getPlayer()->setHealth(20);
-       $event->getPlayer()->setFood(20);
-       $event->setCancelled();
-        }
-      }
-
-   public function disabledCommands(PlayerCommandPreprocessEvent $event) {
+   public function Commands(PlayerCommandPreprocessEvent $event) {
        $cmd = explode(" ", strtolower($event->getMessage()));
        $player = $event->getPlayer();
    if($cmd[0] === "/setgroup"){ 
@@ -355,7 +308,7 @@ class Main extends PluginBase implements Listener{
        $event->setCancelled();
    }
    elseif($cmd[0] === "/plugins"){
-       $player->sendMessage("§7Plugins (4):  §3KingdomAuth v0.1, KingdomCore v1.3, SkyWarsCore v0.1, SurvivalGamesCore v0.1");
+       $player->sendMessage("§7Plugins (4):  §3KingdomAuth v1.0, KingdomCore 1.0, SkyWarsCore v1.0, SurvivalGamesCore v1.0");
        $event->setCancelled();
    }
    elseif($cmd[0] === "/?"){
@@ -374,10 +327,6 @@ class Main extends PluginBase implements Listener{
        $player->sendMessage($this->getConfig()->get("Unknown-Command"));
        $event->setCancelled(); 
    }
-   elseif($cmd[0] === "/setworldspawn"){
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled(); 
-   }
    elseif($cmd[0] === "/enchant"){ 
        $player->sendMessage($this->getConfig()->get("Unknown-Command"));
        $event->setCancelled();
@@ -393,19 +342,44 @@ class Main extends PluginBase implements Listener{
    elseif($cmd[0] === "/xp"){ 
        $player->sendMessage($this->getConfig()->get("Unknown-Command"));
        $event->setCancelled();
-        }
-    }
-
-   public function Help(PlayerCommandPreprocessEvent $event) {
-       $cmdHelp = explode(" ", strtolower($event->getMessage()));
-       $player = $event->getPlayer();
-   if($cmdHelp[0] === "/help"){ 
-       $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/msg - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to pay players money\n§b/flyon - §fAdmins only\n§b/flyoff - §fAdmins only");
+   }
+   elseif($cmd[0] === "/help"){ 
+       $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/msg - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to pay players money\n§b/flyon - §fAllows Admins to fly");
        $event->setCancelled();
-         }
+   }
+   elseif($cmd[0] === "/hub" or $cmd[0] === "/lobby" or $cmd[0] === "/spawn"){ 
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
+       $player->sendMessage($this->getConfig()->get("Hub-Command")); 
+       $event->getPlayer()->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(1, Item::get(388, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(2, Item::get(264, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(3, Item::get(265, 0, 1));
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(0, 0);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(1, 1);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(2, 2);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(3, 3);
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4); 
+       $event->getPlayer()->setMaxHealth(20);
+       $event->getPlayer()->setHealth(20);
+       $event->getPlayer()->setFood(20);
+       $event->setCancelled();
+   }
+   elseif($cmd[0] === "/flyon" and $player->isOp()){
+       $player = $event->getPlayer();
+       $player->setAllowFlight(true);
+       $player->sendMessage("§6Flight was Turned §aOn");
+       $event->setCancelled();
+   }
+   elseif($cmd[0] === "/flyon" and !$player->isOp()){
+       $player = $event->getPlayer();
+       $player->setAllowFlight(false);
+       $player->sendMessage("§6Flight is only for §aAdmins");
+       $event->setCancelled();
       }
+     }
 
-  public function KitSignSetup(SignChangeEvent $event){
+  public function SignSetup(SignChangeEvent $event){
       $player = $event->getPlayer();
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
             $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
@@ -418,19 +392,8 @@ class Main extends PluginBase implements Listener{
        $event->setLine(0,"§l§c[§bKitPvP§c]");
        $event->setLine(1,"§l§eBiomePvP");
        $event->setLine(3,"§fTap to Join");
-    }
-   }
   }
-
-  public function SkyWarsSign(SignChangeEvent $event){
-      $player = $event->getPlayer();
-  if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
-            $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
-  if(!($sign instanceof Sign)){
-  return true;
-  }
-            $sign = $event->getLines();
-  if($sign[0]=='Sky'){
+  elseif($sign[0]=='Sky'){
        $player->sendMessage("§o§l§b-- Skywars Setup --");
        $event->setLine(0,"§l§c[§bSkywars§c]");
        $event->setLine(1,"§l§eSkywars Lobby");
@@ -439,26 +402,7 @@ class Main extends PluginBase implements Listener{
    }
   }
 
-  public function playerPvP(PlayerInteractEvent $event){
-       $player = $event->getPlayer();
-       $level = $event->getPlayer()->getLevel();
-  if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
-            $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
-  if(!($sign instanceof Sign)){
-  return;
-  }
-       $sign = $sign->getText();
-  if($sign[0]=='§l§c[§bKitPvP§c]'){
-       $player->sendMessage("§o§l§f-- §cJoining §bPvP§f --§r");
-       $player->setHealth(20);
-       $player->setFood(20);
-       $player->teleport(new Vector3(119, 77, 81));
-       $player->getInventory()->clearAll();
-    }
-   }
-  }
-
-  public function playerSkywars(PlayerInteractEvent $event){
+  public function GameSigns(PlayerInteractEvent $event){
        $player = $event->getPlayer();
        $level = $event->getPlayer()->getLevel();
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
@@ -473,6 +417,17 @@ class Main extends PluginBase implements Listener{
        $player->setFood(20);
        $player->teleport(new Vector3(134, 77, 81));
        $player->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
+  }
+  elseif($sign[0]=='§l§c[§bKitPvP§c]'){
+       $player->sendMessage("§o§l§f-- §cJoining §bPvP§f --§r");
+       $player->setHealth(20);
+       $player->setFood(20);
+       $player->teleport(new Vector3(119, 77, 81));
+       $player->getInventory()->clearAll();
+       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
+       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
     }
    }
   }
