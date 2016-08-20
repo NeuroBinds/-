@@ -1,13 +1,58 @@
 ---
-Dev_Mode: false
+## KingdomCore Config ##
+## Server Names ##
 Server-Name-Dev: §bKingdom§cDev
 Server-Name: §bKingdom§9Craft§3
+
+## Server Version ##
+Version: Beta 1.4
+
+## Server Ip Domain ##
+Server-IP: play.kcmcpe.net
+
+## Command Messages ##
 Hub-Command: §bGoing Back to Spawn..
 Unknown-Command: §cUnknown command. Try /help for a list of commands
+
+## Caps ##
 max-caps: 3
 interval: 10
+
+## Item Commands ##
 item1: 264
 item2: 265
 item3: 388
 item4: 406
+
+## Dev Mode ##
+Dev_Mode: false
+
+## Anti Spam ##
+## seconds a player has to wait to send a message again ##
+time: 5
+## max warnings a player will receive until they receive a block type ##
+max_warnings: 3
+## warn player each time they spam ##
+warning_message: "&7[&bKingdom&9Chat&7] &cPlease stop chatting too quick! &cWarnings:&f %warns%"
+## Types: message, mute, kick, ban, ban-ip ##
+block_type: mute
+## how much time should the player be muted (in seconds) ##
+mute_time: 120
+## message when player gets muted ##
+mute_message: "&7[&bKingdom&9Chat&7] &cYou have been muted for spamming."
+## message when player is still muted ##
+muted_message: "&7[&bKingdom&9Chat&7] &eYou are still muted."
+un-muted_message: "&7[&bKingdom&9Chat&7] &bYou have been unmuted! Do not spam, or you will be muted again."
+## Reason why player was kicked ##
+## %player% = players name ##
+kick_reason: "&7[&bKingdom&9Chat&7] &cYou have been kicked for spamming."
+## Reason why player was banned ##
+## %player% = players name ##
+ban_reason: "&7[&bKingdom&9Chat&7] &4You have been banned for spamming!"
+## Reason why player was ip-banned ##
+## %player% = players name ##
+ip_ban_reason: "&7[&bKingdom&9Chat&7] &4You have been ip banned for spamming!"
+## message that will be sent if player is spamming ##
+## %player% = players name ##
+message: "&7[&bKingdom&9Chat&7] &aPlease let others chat, thank you. :)"
 ...

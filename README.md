@@ -1,4 +1,4 @@
-# KingdomCraft-Core v1.3
+# KingdomCraft-Core v1.4
 
 # Info
 
@@ -20,12 +20,12 @@ Fill free to add but do not remove code (Submit a pull and I will merge it)
 
 - [x] Make a config 
 
-- [ ] Make AntiHack Work
+- [x] Make a rank system 
 
-- [ ] Clean up code 
+- [ ] Clean up code
 
-- [ ] Create VIP Related Stuff (10% done)
+- [ ] Make Working AntiHack 
+
+- [ ] Create VIP Related Stuff (20% done)
 
 - [ ] Add more to Dev mode for Testing
-
-- [ ] Make a rank system 
