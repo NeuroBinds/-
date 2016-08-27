@@ -1,4 +1,4 @@
-# KingdomCraft-Core v1.4
+# KingdomCraft-Core v1.5
 
 # Info
 
@@ -22,10 +22,10 @@ Fill free to add but do not remove code (Submit a pull and I will merge it)
 
 - [x] Make a rank system 
 
-- [ ] Clean up code
+- [x] Clean up code (Thhis will never be 100% Done)
 
 - [ ] Make Working AntiHack 
 
-- [ ] Create VIP Related Stuff (20% done)
+- [ ] Create VIP Related Stuff (30% done)
 
 - [ ] Add more to Dev mode for Testing
