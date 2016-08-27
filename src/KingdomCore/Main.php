@@ -61,7 +61,6 @@ use pocketmine\network\protocol\UseItemPacket;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
 use pocketmine\block\Block;
-use Particle\ParticleManager;
 
 class Main extends PluginBase implements Listener {
  
