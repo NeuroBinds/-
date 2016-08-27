@@ -5,7 +5,7 @@ Server-Name-Dev: §bKingdom§cDev
 Server-Name: §bKingdom§9Craft§3
 
 ## Server Version ##
-Version: Beta 1.4
+Version: Beta 1.5
 
 ## Server Ip Domain ##
 Server-IP: play.kcmcpe.net
@@ -13,6 +13,12 @@ Server-IP: play.kcmcpe.net
 ## Command Messages ##
 Hub-Command: §bGoing Back to Spawn..
 Unknown-Command: §cUnknown command. Try /help for a list of commands
+
+## PerWorldChat ##
+PerWorldChat: true
+
+## AntiSwearing ##
+AntiSwearing: true
 
 ## Caps ##
 max-caps: 3
