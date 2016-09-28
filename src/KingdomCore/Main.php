@@ -13,24 +13,24 @@ use pocketmine\event\event\plugin\PluginDisableEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\event\Listener;
 use pocketmine\event\TranslationContainer;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\enchantment\EnchantmentEntry;
+use pocketmine\item\enchantment\EnchantmentList;
+use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
-use pocketmine\event\player\PlayerToggleSneakEvent;
-use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\BlockBreakEvent;
-use pocketmine\level\sound\PopSound;
-use pocketmine\level\sound\AnvilFallSound;
-use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\level\particle\FloatingTextParticle;
 use pocketmine\level\particle\Particle;
 use pocketmine\level\Level;
 use pocketmine\Player;
+use pocketmine\utils\Color;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\command\Command;
@@ -53,101 +53,82 @@ use pocketmine\level\Position\getLevel;
 use pocketmine\plugin\PluginManager;
 use pocketmine\plugin\Plugin;
 use pocketmine\math\Vector3;
-use pocketmine\utils\TextFormat;
+use pocketmine\utils\TextFormat as C;
 use pocketmine\utils\Config;
+use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\entity\Entity;
 use pocketmine\utils\Random;
 use pocketmine\network\protocol\UseItemPacket;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
 use pocketmine\block\Block;
+use ChatFilter\ChatFilterTask;
+use ChatFilter\ChatFilter;
 
 class Main extends PluginBase implements Listener {
  
-   private $maxcaps;
-   public $interval = 10;
+   public $users = [];
 
    public function onEnable(){
-       $version = $this->getConfig()->get("Version");
-       $this->interval = $this->getConfig()->get("interval");
-       $this->getServer()->getPluginManager()->registerEvents($this ,$this);
-       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
-       $this->getServer()->loadLevel("PVP"); 
        $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);
        $this->yml = $yml->getAll();
-       $this->getLogger()->info("Starting KingdomCraft Core §b". $version);
-       $this->getLogger()->info("Done!");
+       $this->filter = new ChatFilter();
+       $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
+       $this->getServer()->getPluginManager()->registerEvents($this ,$this);
+       $this->getServer()->getScheduler()->scheduleRepeatingTask(new Task($this), 2000);
+       $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
+       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
+       $this->getServer()->loadLevel("PVP"); 
        $this->saveResource("config.yml");
        $this->saveDefaultConfig();
    if($this->getConfig()->get("Dev_Mode") == "true"){
-       $this->getLogger()->info("§cDev Mode is Starting up...");
-       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name-Dev"));
-       $this->getLogger()->info("§cDev Mode Loaded!");
-    }
+       $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core Dev Mode ". C::WHITE . $this->getConfig()->get("Version"));
+       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Dev-Server-Name"));       
    }
-   public function loadConfig(){
-       $this->saveDefaultConfig();
-       $this->maxcaps = intval($this->getConfig()->get("max-caps"));
+       $this->getLogger()->info(C::GOLD ."AntiHacks Loaded");
+       $this->getLogger()->info("Done!");
    }
 
    public function onRespawn(PlayerRespawnEvent $event){
        $player = $event->getPlayer();
-       $level = $event->getPlayer()->getLevel();
+       $level = $this->getServer()->getLevelByName("hub");
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $this->setupInventory($player);
+       $this->Items($player);
        $this->setRank($player); 
    }
 
    public function onJoin(PlayerJoinEvent $event){ 
-       $level = $this->getServer()->getLevelByName("hub");
-       $ip = $this->getConfig()->get("Server-IP");
-       $version = $this->getConfig()->get("Version");
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn()); 
        $player = $event->getPlayer();
-       $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
-       $rank = $rankyml->get($player->getName());
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $level = $this->getServer()->getDefaultLevel();
-       $player->sendMessage("§b------------------------------------"); 
-       $player->sendMessage("§7Welcome, §b" . $player->getName() . " §7to §bKingdom§9Craft §b". $version); 
-       $player->sendMessage("§7You are Playing on: §b". $ip); 
-       $player->sendMessage("§7Hope you Enjoy you Stay!"); 
-       $player->sendMessage("§b------------------------------------"); 
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $this->setupInventory($player);
+       $level = $this->getServer()->getLevelByName("hub");
+       $br = C::RESET . C::WHITE . "\n";
+       $text[0] = C::DARK_RED ."[". C::DARK_GRAY ."------------------------------------". C::DARK_RED ."]". $br . C::GRAY ."Welcome to ". C::AQUA ."Kingdom". C::BLUE ."Craft". $br . C::GRAY ."You are Playing on - play.kcmpe.net". $br . C::GRAY ."Hope you Enjoy you Stay!". $br .C::DARK_RED ."[". C::DARK_GRAY ."------------------------------------". C::DARK_RED ."]";
+       $text[3] = C::BOLD . C::AQUA ."Kingdom". C::BLUE ."Craft";
+       $text[4] = C::AQUA . "Welcome Back ". C::WHITE . $player->getName();
+       $text[5] = C::AQUA . "There is ". C::WHITE . count($this->getServer()->getOnlinePlayers()) . C::AQUA ." players online";
+       $this->Items($player);
        $this->setRank($player); 
-   if($rank == "Admin" or $rank == "Mobcrush" or $rank == "Co-Owner" or $rank == "Owner" or $rank == "VIP"){
-       $player->sendMessage("§7Welcome back, Your Rank: §b" . $rank);  
-       $player->sendMessage("§b------------------------------------"); 
+       $player->sendMessage($text[0]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(170.5505, 67.8, 41.4863), $text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(202.5505, 67.8, 69.4863), C::DARK_PURPLE ."Staff". $br . C::AQUA ."Owners: ". C::WHITE." EnderPE, EpicSteve33". $br . C::AQUA ."Co-Owners: ". C::WHITE ." andrep0617, Realnanners". $br . C::AQUA ."Admins: ". C::WHITE ." caca559, LilBiggs11, EllieDoesGames". $br . C::AQUA ."Others: ". C::WHITE ." SmexiMexiG, PattyWak, GigsfanMC"), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(202.5505, 67.8, 63.4863), C::RED ."§cRules". $br . C::AQUA ."#1: ". C::WHITE ." No Hacking". $br . C::AQUA ."#2: ". C::WHITE ." Do not Harass Other Players or Staff". $br . C::AQUA ."#3: ". C::WHITE ." Do not Ask to be Admin". $br . C::AQUA ."#4: ". C::WHITE ." Do not Share your account info"), [$event->getPlayer()]);
+
+   }   
+
+   public function onBlockBreak(BlockBreakEvent $event){
+         $player = $event->getPlayer();
+   if(!$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "hub" or !$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "PVP") {
+          $event->setCancelled(true);
     }
    }
 
-   public function onBlockBreakHub(BlockBreakEvent $event){
+   public function onBlockPlace(BlockPlaceEvent $event){
          $player = $event->getPlayer();
-         $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
-         $rank = $rankyml->get($player->getName());
-   if($player->getLevel()->getName() == "hub" and !$rank == "Owner" or $player->getLevel()->getName() == "hub" and !$rank == "Co-Owner") {
+   if(!$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "hub" or !$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "PVP") {
           $event->setCancelled(true);
+    }
    }
-   elseif($player->getLevel()->getName() == "PVP") {
-          $player = $event->getPlayer();
-          $event->setCancelled(true);
-    } 
-   }
-   public function onBlockPlaceHub(BlockPlaceEvent $event){
-         $player = $event->getPlayer();
-         $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
-         $rank = $rankyml->get($player->getName());
-   if($player->getLevel()->getName() == "hub" and !$rank == "Owner" or $player->getLevel()->getName() == "hub" and !$rank == "Co-Owner") {
-          $event->setCancelled(true);
-   }
-   elseif($player->getLevel()->getName() == "PVP") {
-          $player = $event->getPlayer();
-          $event->setCancelled(true);
-    } 
-   }
+
    public function GodMode(EntityDamageEvent $event){
           $player = $event->getEntity();
    if($player->getLevel()->getName() == "hub") {
@@ -162,90 +143,64 @@ class Main extends PluginBase implements Listener {
    }
    public function onDropItemEvent(PlayerDropItemEvent $event){
        $player = $event->getPlayer();
-       $level = $event->getPlayer()->getLevel();
-       $player->sendTip("§cYou Cannot Drop Items");
        $event->setCancelled(true);
    }
 
-   public function onItemHotbar(PlayerItemHeldEvent $event){
-       $cfg = $this->getConfig();
+   public function onPortal(PlayerMoveEvent $event){
        $player = $event->getPlayer();
-       $item = $event->getItem()->getId();     
-   if($item === $cfg->get("item1") and $player->getLevel()->getName() == "hub"){
-       $player->sendPopup("KitPvP");
-   }
-   elseif($item === $cfg->get("item2") and $player->getLevel()->getName() == "hub"){
-       $player->sendPopup("Help");
-   }
-   elseif($item === $cfg->get("item3") and $player->getLevel()->getName() == "hub"){
-       $player->sendPopup("SkyWars");
-   }
-   elseif($item === $cfg->get("item4") and $player->getLevel()->getName() == "hub"){
-       $player->sendPopup("Hub");
-       }
-   }
+       $x = round($player->getX());
+       $z = round($player->getZ());
+   if($event->getFrom()->getLevel()->getBlockIdAt($event->getTo()->x, $event->getTo()->y, $event->getTo()->z) === Block::PORTAL and $z = 97 || $z = 96 || $z = 95 || $x = 172 || $x = 171 || $x = 170 || $x = 169 || $x = 168 || $x = 167 || $x = 166 || $x = 165 || $x = 164 || $x = 163 || $x = 162){
+       $this->gamesLobby($player);
+   }     
+  }
 
-   public function onItemUse(DataPacketReceiveEvent $event){
+  public function onAntiHack(PlayerMoveEvent $event){
+       $player = $event->getPlayer();
+       $br = C::RESET . C::WHITE . "\n";
+  if($event->isCancelled() or $player->isOp()  or $player->isCreative() or $player->isSpectator() or $player->getAllowFlight()) {
+  return;
+  }  
+  else 
+  {
+  if(($player->getInAirTicks() > 30) >= 2000) {
+       $player->kick($br . $br . C::RED . $player->getName() . $br . $br ."KingdomCraft". C::RED ." Does not Allow Hacking". $br ."Turn off Hacks or Mods if you Have Any");
+    } 
+   }
+  }      
+   
+  public function onItemUse(DataPacketReceiveEvent $event){
        $pk = $event->getPacket();
        $player = $event->getPlayer();
        $level = $event->getPlayer()->getLevel();
    if($pk instanceof UseItemPacket and $pk->face === 0xff) {
        $item = $player->getInventory()->getItemInHand();
-   if($item->getId() == $this->yml["item1"] and $player->getLevel()->getName() == "hub"){
-       $player->teleport(new Vector3(119, 77, 81));
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
+   if($item->getId() == $this->yml["Games-Item"] and $player->getLevel()->getName() == "hub"){
+       $this->gamesLobby($player);
    }
-   elseif($item->getId() == $this->yml["item2"] and $player->getLevel()->getName() == "hub"){
-       $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/tell - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to give toher players money\n§b/flyon - §fAdmins only\n§b/flyoff - §fAdmins only");
+   elseif($item->getId() == $this->yml["Help-Item"] and $player->getLevel()->getName() == "hub"){
+       $this->Help($player);
    }
-   elseif($item->getId() == $this->yml["item3"] and $player->getLevel()->getName() == "hub"){
-       $player->sendMessage("§o§l§f-- §cJoining §bSkywars§f --§r");
-       $player->setHealth(20);
-       $player->setFood(20);
-       $player->teleport(new Vector3(134, 77, 81));
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
+   elseif($item->getId() == $this->yml["Info-Item"] and $player->getLevel()->getName() == "hub"){ 
+       $player->teleport(new Vector3(205, 66, 66));
    }
-   elseif($item->getId() == $this->yml["item4"] and $player->getLevel()->getName() == "hub"){
+   elseif($item->getId() == $this->yml["Hub-Item"] and $player->getLevel()->getName() == "hub"){
+       $player->getLevel()->addSound(new EndermanTeleportSound($player));
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $player->sendMessage($this->getConfig()->get("Hub-Command")); 
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $this->setupInventory($player);
-       }
-     }
+       $this->Items($player);
+       $this->setRank($player); 
+    }
    }
+  }
 
-   public function onChat(PlayerChatEvent $event){
+  public function onPlayerChat(PlayerChatEvent $event) {
         $player = $event->getPlayer();
         $level = $event->getPlayer()->getLevel();
-   if($this->getConfig()->get("PerWorldChat") == "true"){
         $event->setRecipients($player->getLevel()->getPlayers());
-     }
+  if(!in_array($event->getPlayer()->getDisplayName(), $this->users) && !$this->filter->check($event->getPlayer(), $event->getMessage())) { 
+       $event->setCancelled(true);
    }
-
-
-  public function onDeath(PlayerDeathEvent $event)  {
-        $cause = $event->getEntity()->getLastDamageCause();
-  if($cause instanceof EntityDamageByEntityEvent) {
-        $player = $event->getEntity();
-        $p = $event->getEntity();
-        $killer = $cause->getDamager();
-  if($killer instanceof Player){
-        $event->setDeathMessage("");
-        $killer->sendMessage("§bYou Killed§f ". $player->getName());
-        $player->sendMessage("§bYou were Killed by§f ". $killer->getName());
-        $player->setMaxHealth(20);
-        $this->setRank($player); 
-        $player->getInventory()->clearAll();
-	}
-      }
-   }
+  }
 
    public function Commands(PlayerCommandPreprocessEvent $event) {
        $cmd = explode(" ", strtolower($event->getMessage()));
@@ -254,319 +209,260 @@ class Main extends PluginBase implements Listener {
        $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
        $rank = $rankyml->get($player->getName());
    if($cmd[0] === "/plugins"){
-       $player->sendMessage("§7Plugins (4):  §3KingdomAuth v1.0, KingdomCore ". $version .", SkyWarsCore v1.0, SurvivalGamesCore v1.0");
+       $player->sendMessage(C::GRAY ."Plugins (3): ". C::GOLD ." KingdomAuth v1.0, KingdomCore ". $version .", SkyWarsCore v1.0");
        $event->setCancelled();
    }
-   elseif($cmd[0] === "/?"){
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled();
-   }
-   elseif($cmd[0] === "/effect"){
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled(); 
-   }
-   elseif($cmd[0] === "/give"){ 
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled(); 
-   }
-   elseif($cmd[0] === "/kill"){ 
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled(); 
-   }
-   elseif($cmd[0] === "/enchant"){ 
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled();
-   }
-   elseif($cmd[0] === "/weather"){ 
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled(); 
-   }
-   elseif($cmd[0] === "/summon"){ 
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
-       $event->setCancelled();
-   }
-   elseif($cmd[0] === "/xp"){ 
-       $player->sendMessage($this->getConfig()->get("Unknown-Command"));
+   elseif($cmd[0] === "/?" or $cmd[0] === "/version" or$cmd[0] === "/op" or $cmd[0] === "/deop" or $cmd[0] === "/effect" or $cmd[0] === "/kill" or $cmd[0] === "/enchant" or    $cmd[0] === "/weather" or $cmd[0] === "/summon" or $cmd[0] === "/xp"){
+       $player->sendMessage(C::RED ."Unknown command. Try /help for a list of commands");
        $event->setCancelled();
    }
    elseif($cmd[0] === "/help"){ 
-       $player->sendMessage("§o§l§b-- Help Page 1 of 1 --§r\n§b/hub - §fTeleport player to hub\n§b/help - §f{Page} lists all Commands\n§b/msg - §f{player} Sends a private message to the given player\n§b/mymoney - §fChecks How much money you have\n§b/pay - §f{player} Allows you to pay players money\n§b/flyon - §fAllows Admins to fly");
+       $this->Help($player); 
        $event->setCancelled();
    }
    elseif($cmd[0] === "/hub" or $cmd[0] === "/lobby" or $cmd[0] === "/spawn"){ 
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $player->sendMessage($this->getConfig()->get("Hub-Command")); 
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $this->setupInventory($player);
+       $this->Items($player);
        $this->setRank($player); 
        $event->setCancelled();
    }
-   elseif($cmd[0] === "/flyon" and $player->isOp() and $player->getLevel()->getName() == "hub"){
+   elseif($cmd[0] === "/gm"){ 
+       $this->HelpGamemode($player); 
+       $event->setCancelled(); 
+   }
+   elseif($cmd[0] === "/gms" and $player->isOp()){ 
+       $player->setGamemode(0);
+       $player->sendMessage(C::GOLD ."Your Gamemode has been updated");
+       $event->setCancelled();
+   }
+   elseif($cmd[0] === "/gmc" and $player->isOp()){ 
+       $player->setGamemode(1);
+       $player->sendMessage(C::GOLD ."Your Gamemode has been updated");
+       $event->setCancelled();
+   } 
+   elseif($cmd[0] === "/flyon" and $player->isOp() and $player->getLevel()->getName() == "hub" or $cmd[0] === "/fly" and $player->isOp() and $player->getLevel()->getName() == "hub" ){
        $player = $event->getPlayer();
        $player->setAllowFlight(true);
-       $player->sendMessage("§6Flight was Turned §aOn");
+       $player->sendMessage(C::GOLD ."Flight was Turned ". C::GREEN ." On");
        $event->setCancelled();
    }
-   elseif($cmd[0] === "/flyon" and !$player->isOp()){
+   elseif($cmd[0] === "/flyon" and !$player->isOp() or $cmd[0] === "/gms" and !$player->isOp() or $cmd[0] === "/gmc" and !$player->isOp()){
        $player = $event->getPlayer();
-       $player->sendMessage("§6Flight is only for §aAdmins");
+       $player->sendMessage(C::RED ."Staff Only");
        $event->setCancelled();
-    }
    }
+  } 
 
-  public function SignSetup(SignChangeEvent $event){
+  public function signSetup(SignChangeEvent $event){
       $player = $event->getPlayer();
-       $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
-       $rank = $rankyml->get($player->getName());
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
-            $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
-  if(!($sign instanceof Sign)){
-                return true;
+      $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
+  if(!($sign instanceof Sign))
+  {
+  return true;
   }
-            $sign = $event->getLines();
-  if($sign[0] == "PvP" and $rank == "Admin" or $sign[0] == "PvP" and $rank == "Owner"){
-       $player->sendMessage("§o§l§b-- PvP Setup --");
-       $event->setLine(0,"§l§c[§bKitPvP§c]");
-       $event->setLine(1,"§l§eBiomePvP");
-       $event->setLine(3,"§fTap to Join");
+       $sign = $event->getLines();
+  if($sign[0] == "hub" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::DARK_RED ."[". C::GRAY ."-------------". C::DARK_RED ."]");
+       $event->setLine(1, C::AQUA ."KingdomCraft");
+       $event->setLine(2, C::AQUA ."0.16.0 Alpha");
+       $event->setLine(3, C::DARK_RED ."[". C::GRAY ."-------------". C::DARK_RED ."]");
+  } 
+  elseif($sign[0] == "kit1" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::GRAY ."[" .C::AQUA ."Archer". C::GRAY ."]");
+       $event->setLine(1, C::WHITE ."kit1");
+       $event->setLine(3, C::WHITE ."Tap for Kit");
   }
-  elseif($sign[0] == "Sky" and $rank == "Admin" or $sign[0] == "Sky" and $rank == "Owner"){
-       $player->sendMessage("§o§l§b-- Skywars Setup --");
-       $event->setLine(0,"§l§c[§bSkywars§c]");
-       $event->setLine(1,"§l§eSkywars Lobby");
-       $event->setLine(3,"§fTap to Join");
+  elseif($sign[0] == "kit2" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::GRAY ."[" .C::RED ."Knight". C::GRAY ."]");
+       $event->setLine(1, C::WHITE ."kit2");
+       $event->setLine(3, C::WHITE ."Tap for Kit");
+  }
+  elseif($sign[0] == "kit3" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::GRAY ."[" .C::GOLD ."Flame". C::GRAY ."]");
+       $event->setLine(1, C::WHITE ."kit3");
+       $event->setLine(3, C::WHITE ."Tap for Kit");
+  }
+  elseif($sign[0] == "coming" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0,"");
+       $event->setLine(1, C::WHITE ."More Kits");
+       $event->setLine(2, C::WHITE ."Coming Soon");
     }
    }
   }
 
   public function GameSigns(PlayerInteractEvent $event){
        $player = $event->getPlayer();
-       $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
-       $rank = $rankyml->get($player->getName());
-       $level = $event->getPlayer()->getLevel();
+       $kitText[1] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Archer " . C::AQUA ."kit". C::WHITE ." --"
+       $kitText[2] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Knight " . C::AQUA ."kit". C::WHITE ." --"
+       $kitText[3] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Flame " . C::AQUA ."kit". C::WHITE ." --"
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
-            $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
-  if(!($sign instanceof Sign)){
-  return;
+       $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
+  if(!($sign instanceof Sign))
+  {
+  return true;
   }
        $sign = $sign->getText();
-  if($sign[0]=='§bSkywars'){
-       $player->sendMessage("§o§l§f-- §cJoining §bSkywars§f --§r");
-       $player->setHealth(20);
-       $player->setFood(20);
-       $player->teleport(new Vector3(134, 77, 81));
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
-  }
-  elseif($sign[0]=='§bKitPvP§'){
-       $player->sendMessage("§o§l§f-- §cJoining §bPvP§f --§r");
-       $player->setHealth(20);
-       $player->setFood(20);
-       $player->teleport(new Vector3(119, 77, 81));
-       $player->getInventory()->clearAll();
-       $player->setGamemode(0);
-       $event->getPlayer()->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $event->getPlayer()->getInventory()->setHotbarSlotIndex(4, 4);
-  }
-  elseif($sign[0] == "§eKnight"){
-       $player->sendTip("§o§l§b-- §cPvP Kit §bKnight§c Given§b --");
-       $player->setMaxHealth(40);
-       $player->setHealth(40);
-       $player->setFood(20);
-       $player->setGamemode(0);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(0, Item::get(276,0,1));
-       $player->getInventory()->setItem(1, Item::get(322,0,64));
-       $player->getInventory()->setItem(2, Item::get(373,14,1));
-       $player->getInventory()->setItem(3, Item::get(373,28,1));
-       $player->getInventory()->setHelmet(Item::get(302, 0, 1));
-       $player->getInventory()->setChestplate(Item::get(307, 0, 1));
-       $player->getInventory()->setLeggings(Item::get(308, 0, 1));
-       $player->getInventory()->setBoots(Item::get(305, 0, 1));
+  if($sign[1]== C::WHITE ."kit1"){
+       $player->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
+       $ItemBow = Item::get(261, 0, 1);
+       $ItemBow->setCustomName(C::RED ."Archer Bow");
+       $ItemBow->addEnchantment(Enchantment::getEnchantment(19)->setLevel(1));
+       $tempTagRed = new CompoundTag("", []);
+       $tempTagRed->customColor = new IntTag("customColor", 0xDA2623); 
+       $player->sendMessage($kitText[1]);
+       $player->sendTip($kitText[1]);
+       $this->setup($player);
+       $event->getPlayer()->getInventory()->setHelmet(Item::get(Item::LEATHER_CAP)->setCompoundTag($tempTagRed));
+       $event->getPlayer()->getInventory()->setChestplate(Item::get(Item::LEATHER_TUNIC)->setCompoundTag($tempTagRed));
+       $event->getPlayer()->getInventory()->setLeggings(Item::get(Item::LEATHER_PANTS)->setCompoundTag($tempTagRed));
+       $event->getPlayer()->getInventory()->setBoots(Item::get(Item::LEATHER_BOOTS)->setCompoundTag($tempTagRed));
+       $player->setNameTag(C::GRAY ."[" .C::RED ."Archer". C::GRAY ."] ". C::WHITE . $player->getName());
+       $player->getInventory()->setItem(0, Item::get(279, 0, 1));
+       $player->getInventory()->setItem(1, $ItemBow);
+       $player->getInventory()->setItem(2, Item::get(364, 0, 255));
+       $player->getInventory()->setItem(10, Item::get(262, 0, 255));
+       $player->getInventory()->sendContents($player);
        $player->getInventory()->sendArmorContents($player);
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
   }
-  elseif($sign[0] == "§eArcher"){
-       $player->sendMessage("§o§l§b-- §cPvP Kit §bArcher§c Given§b --");
-       $player->sendTip("§o§l§b-- §cPvP Kit §bArcher§c Given --");
-       $player->setMaxHealth(40);
-       $player->setHealth(40);
-       $player->setFood(20);
-       $player->setGamemode(0);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(0, Item::get(279,0,1));
-       $player->getInventory()->setItem(1, Item::get(261,0,1));
-       $player->getInventory()->setItem(2, Item::get(322,0,64));
-       $player->getInventory()->setItem(3, Item::get(373,14,1));
-       $player->getInventory()->setItem(4, Item::get(373,28,1));
-       $player->getInventory()->setItem(14, Item::get(262,27,255));
-       $player->getInventory()->setHelmet(Item::get(302, 0, 1));
-       $player->getInventory()->setChestplate(Item::get(307, 0, 1));
-       $player->getInventory()->setLeggings(Item::get(308, 0, 1));
-       $player->getInventory()->setBoots(Item::get(305, 0, 1));
+  elseif($sign[1]== C::WHITE ."kit2"){
+       $player->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
+       $ItemSword = Item::get(276, 0, 1);
+       $ItemSword->setCustomName(C::AQUA ."Knight Sword");
+       $ItemSword->addEnchantment(Enchantment::getEnchantment(9)->setLevel(1));
+       $ItemSword->addEnchantment(Enchantment::getEnchantment(12)->setLevel(1));
+       $tempTagBlue = new CompoundTag("", []);
+       $tempTagBlue->customColor = new IntTag("customColor", 4276384);    
+       $player->sendMessage($kitText[1]);
+       $player->sendTip($kitText[1]);
+       $this->setup($player);
+       $event->getPlayer()->getInventory()->setHelmet(Item::get(Item::LEATHER_CAP)->setCompoundTag($tempTagBlue));
+       $event->getPlayer()->getInventory()->setChestplate(Item::get(Item::LEATHER_TUNIC)->setCompoundTag($tempTagBlue));
+       $event->getPlayer()->getInventory()->setLeggings(Item::get(Item::LEATHER_PANTS)->setCompoundTag($tempTagBlue));
+       $event->getPlayer()->getInventory()->setBoots(Item::get(Item::LEATHER_BOOTS)->setCompoundTag($tempTagBlue));
+       $player->setNameTag(C::GRAY ."[" .C::AQUA ."Knight". C::GRAY ."] ". C::WHITE . $player->getName());
+       $player->getInventory()->setItem(0, $ItemSword);
+       $player->getInventory()->setItem(1, Item::get(364, 0, 255));
+       $player->getInventory()->sendContents($player);
        $player->getInventory()->sendArmorContents($player);
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
   }
-  elseif($sign[0] == "§eSuper" and $rank == "Mobcrush" or $sign[0] == "§eSuper" and $rank == "Admin" or $sign[0] == "§eSuper" and $rank == "Owner"){
-       $player->sendTip("§o§l§b-- §cPvP Kit §bSuper§c Given§b --");
-       $player->setMaxHealth(40);
-       $player->setHealth(40);
-       $player->setFood(20);
-       $player->setGamemode(0);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(0, Item::get(279,0,1));
-       $player->getInventory()->setItem(1, Item::get(466,0,5));
-       $player->getInventory()->setItem(2, Item::get(373,14,1));
-       $player->getInventory()->setItem(3, Item::get(373,31,1));
-       $player->getInventory()->setHelmet(Item::get(302, 0, 1));
-       $player->getInventory()->setChestplate(Item::get(311, 0, 1));
-       $player->getInventory()->setLeggings(Item::get(308, 0, 1));
-       $player->getInventory()->setBoots(Item::get(313, 0, 1));
+  elseif($sign[1]== C::WHITE ."kit3"){
+       $player->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
+       $ItemFlame = Item::get(280, 0, 1);
+       $ItemFlame->setCustomName(C::GOLD ."Flame Stick");
+       $ItemFlame->addEnchantment(Enchantment::getEnchantment(13)->setLevel(2)); 
+       $ItemFlame->addEnchantment(Enchantment::getEnchantment(9)->setLevel(3)); 
+       $tempTagYellow = new CompoundTag("", []);
+       $tempTagYellow->customColor = new IntTag("customColor", 987151);
+       $player->sendMessage($kitText[3]);
+       $player->sendTip($kitText[3]);
+       $this->setup($player);
+       $event->getPlayer()->getInventory()->setHelmet(Item::get(Item::LEATHER_CAP)->setCompoundTag($tempTagBlack));
+       $event->getPlayer()->getInventory()->setChestplate(Item::get(Item::LEATHER_TUNIC)->setCompoundTag($tempTagYellow));
+       $event->getPlayer()->getInventory()->setLeggings(Item::get(Item::LEATHER_PANTS)->setCompoundTag($tempTagYellow));
+       $event->getPlayer()->getInventory()->setBoots(Item::get(Item::LEATHER_BOOTS)->setCompoundTag($tempTagYellow));
+       $player->setNameTag(C::GRAY ."[" .C::GOLD ."Flame". C::GRAY ."] ". C::WHITE . $player->getName());
+       $player->getInventory()->setItem(0, $ItemFlame);
+       $player->getInventory()->setItem(1, Item::get(364, 0, 255));
+       $player->getInventory()->sendContents($player);
        $player->getInventory()->sendArmorContents($player);
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
-  } 
-  elseif($sign[0] == "§eSuper+" and $rank == "VIP" or $sign[0] == "§eSuper+" and $rank == "Admin" or $sign[0] == "§eSuper+" and $rank == "Owner"){
-       $player->sendTip("§o§l§b-- §cPvP Kit §bSuper+§c Given§b --");
-       $player->setMaxHealth(40);
-       $player->setHealth(40);
-       $player->setFood(20);
-       $player->setGamemode(0);
-       $player->getInventory()->clearAll();
-       $player->getInventory()->setItem(0, Item::get(279,0,1));
-       $player->getInventory()->setItem(1, Item::get(466,0,5));
-       $player->getInventory()->setItem(2, Item::get(373,14,1));
-       $player->getInventory()->setItem(3, Item::get(373,31,1));
-       $player->getInventory()->setHelmet(Item::get(302, 0, 1));
-       $player->getInventory()->setChestplate(Item::get(311, 0, 1));
-       $player->getInventory()->setLeggings(Item::get(308, 0, 1));
-       $player->getInventory()->setBoots(Item::get(313, 0, 1));
-       $player->getInventory()->sendArmorContents($player);
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("PVP")->getSafeSpawn());
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4);
+    }
+   } 
   }
-  elseif($sign[0] == "§eSecretKit"){
-       $player->sendMessage("§cSorry but this was Removed");
-       $player->sendTip("§cSorry but this was Removed");
+  
+  public function onDeath(PlayerDeathEvent $event)  {
+        $event->setDeathMessage("");
+        $cause = $event->getEntity()->getLastDamageCause();
+  if($cause instanceof EntityDamageByEntityEvent) {
+        $player = $event->getEntity();
+        $killer = $cause->getDamager();
+  if($killer instanceof Player){
+  if($player->getLevel()->getName() == "PVP"){
+        $killer->sendMessage(C::GOLD ."You Killed ". C::WHITE . $player->getName());
+        $player->sendMessage(C::GOLD ."You were Killed by ". C::WHITE . $killer->getName());
+        $player->setMaxHealth(20);
+        $player->getInventory()->clearAll();
      }
-    } 
+    }
    }
+  }
 
-   public function setRank($player){
+  public function gamesLobby($player){
+       $player->getLevel()->addSound(new EndermanTeleportSound($player));
+       $player->sendMessage("-- ". C::AQUA ." Welcome to Games Lobby ". C::WHITE ." --");
+       $player->teleport(new Vector3(165, 74, 201));
+       $player->setHealth(20);
+       $player->setFood(20);
+       $player->getInventory()->clearAll();
+       $player->setGamemode(0);
+       $player->getInventory()->setItem(8, Item::get(345, 0, 1)->setCustomName(C::GREEN ."Hub"));
+  }
+ 
+  public function setup($player){
+       $player->setMaxHealth(40);
+       $player->setHealth(40);
+       $player->setFood(20);
+       $player->getInventory()->clearAll();
+  }
+ 
+  public function setRank($player){
        $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
        $rank = $rankyml->get($player->getName());
-   if($rank == "VIP") {
-       $player->setDisplayName("§7[§6VIP§7] §b". $player->getName() ." §f");
-       $player->setNameTag("§7[§6VIP§7] §b". $player->getName());
-   }
-   elseif($rank == "Owner") {
-       $player->setDisplayName("§7[§5Owner§7] §b". $player->getName() ." §f");
-       $player->setNameTag("§7[§5Owner§7] §b". $player->getName());
-   }
-   elseif($rank == "Co-Owner") {
-       $player->setDisplayName("§7[§1Co-Owner§7] §b". $player->getName() ." §f");
-       $player->setNameTag("§7[§5Owner§7] §b". $player->getName());
-   }
-   elseif($rank == "Admin") {
-       $player->setDisplayName("§7[§aAdmin§7] §b". $player->getName() ." §f"); 
-       $player->setNameTag("§7[§aAdmin§7] §b". $player->getName());
-   }
-   elseif($rank == "Mobcrush") {
-       $player->setDisplayName("§7[§eMobCrush§7] §b". $player->getName() ." §f");
-       $player->setNameTag("§7[§eMobCrush§7] §b". $player->getName());
+       $player->setDisplayName(C::WHITE . $player->getName());
+       $player->setNameTag(C::WHITE . $player->getName());
+  if($rank == "VIP"){
+       $player->setDisplayName(C::GRAY ."[". C::GOLD ."VIP". C::GRAY ."] ". C::AQUA . $player->getName() . C::WHITE . " ");
+       $player->setNameTag(C::GRAY ."[". C::GOLD ."VIP". C::GRAY ."] ". C::AQUA . $player->getName());
+  }
+  elseif($rank == "Owner"){
+       $player->setDisplayName(C::GRAY ."[". C::DARK_PURPLE ."Owner". C::GRAY ."] ". C::AQUA . $player->getName() . C::WHITE . " ");
+       $player->setNameTag(C::GRAY ."[". C::DARK_PURPLE ."Owner". C::GRAY ."] ". C::AQUA . $player->getName());
+  }
+  elseif($rank == "Co-Owner"){
+       $player->setDisplayName(C::GRAY ."[". C::DARK_BLUE ."Co-Owner". C::GRAY ."] ". C::AQUA . $player->getName() . C::WHITE . " ");
+       $player->setNameTag(C::GRAY ."[". C::DARK_BLUE ."Co-Owner". C::GRAY ."] ". C::AQUA . $player->getName());
+  }
+  elseif($rank == "Admin"){
+       $player->setDisplayName(C::GRAY ."[". C::GREEN ."Admin". C::GRAY ."] ". C::AQUA . $player->getName() . C::WHITE . " "); 
+       $player->setNameTag(C::GRAY ."[". C::GREEN ."Admin". C::GRAY ."] ". C::AQUA . $player->getName());
+  }
+  elseif($rank == "Mobcrush"){
+       $player->setDisplayName(C::GRAY ."[". C::YELLOW ."MobCrush". C::GRAY ."] ". C::AQUA . $player->getName() . C::WHITE . " ");
+       $player->setNameTag(C::GRAY ."[". C::YELLOW ."MobCrush". C::GRAY ."] ". C::AQUA . $player->getName());
    }
   }
 
-  public function setupInventory($player){
-       $player->getInventory()->setItem(1, Item::get(388, 0, 1));
-       $player->getInventory()->setItem(2, Item::get(264, 0, 1));
-       $player->getInventory()->setItem(3, Item::get(265, 0, 1));
-       $player->getInventory()->setItem(4, Item::get(406, 0, 1));
-       $player->getInventory()->setHotbarSlotIndex(0, 0);
-       $player->getInventory()->setHotbarSlotIndex(1, 1);
-       $player->getInventory()->setHotbarSlotIndex(2, 2);
-       $player->getInventory()->setHotbarSlotIndex(3, 3);
-       $player->getInventory()->setHotbarSlotIndex(4, 4); 
+  public function Help($player){
+       $br = C::RESET . C::WHITE . "\n";
+       $player->sendMessage(C::AQUA ."== Help Page 1 of 1 == ". $br . C::AQUA ."/hub:". C::WHITE ." Teleport player to hub". $br . C::AQUA ."/help:". C::WHITE ." lists all Commands". $br . C::AQUA ."/msg:". C::WHITE ." {player} Sends a private message to the given player". $br . C::AQUA ."/gm:".C::WHITE ." Allows Staff to Change Gamemode". $br . C::AQUA ."/flyon:". C::WHITE ." Allows Admins to fly");
+  }
+ 
+  public function HelpGamemode($player){
+       $br = C::RESET . C::WHITE . "\n";
+       $player->sendMessage(C::AQUA ."== Gamemode Help Page 1 of 1 ==". $br . C::AQUA ."/gms:". C::WHITE ." Survival Mode". $br . C::AQUA ."/gmc:". C::WHITE ." Creative Mode");
+  }
+
+
+  public function Items($player){
+       $player->getInventory()->clearAll();
+       $player->getInventory()->setItem(0, Item::get(378, 0, 1)->setCustomName(C::GREEN ."Games"));
+       $player->getInventory()->setItem(3, Item::get(369, 0, 1)->setCustomName(C::GREEN ."Parkour"));
+       $player->getInventory()->setItem(4, Item::get(340, 0, 1)->setCustomName(C::GREEN ."Info"));
+       $player->getInventory()->setItem(5, Item::get(339, 0, 1)->setCustomName(C::GREEN ."Help"));
+       $player->getInventory()->setItem(8, Item::get(345, 0, 1)->setCustomName(C::GREEN ."Hub"));
+       $player->setGamemode(0);
        $player->setMaxHealth(20);
        $player->setHealth(20);
        $player->setFood(20);
   }
 
-  public function setupSGInventory($player){
-       $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
-       $rank = $rankyml->get($player->getName());
-  if($rank == "VIP" or $rank == "Mobcrush" or $rank == "Owner" or $rank == "Co-Owner" or $rank == "Admin") {
-       $player->setFood(20);
-       $player->setHealth(20);
-       $player->getInventory()->setArmorItem(0, Item::get(Item::CHAIN_HELMET));
-       $player->getInventory()->setArmorItem(1, Item::get(Item::CHAIN_CHESTPLATE));
-       $player->getInventory()->setArmorItem(2, Item::get(Item::CHAIN_LEGGINGS));
-       $player->getInventory()->setArmorItem(3, Item::get(Item::CHAIN_BOOTS));
-       $player->getInventory()->sendArmorContents($player);
-       $player->getInventory()->addItem(Item::get(Item::DIAMOND_AXE, 0, 1));
-       $player->getInventory()->addItem(Item::get(322, 0, 8));
-       $player->getInventory()->sendContents($player);
-   }
+  public function onDisable(){
+       $this->getLogger()->info(C::GREEN ."Shutting down KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
+       $this->saveResource("config.yml");
+       $this->saveResource("rank.yml");
+  if($this->getConfig()->get("Dev_Mode") == "true"){
+       $this->getLogger()->info(C::GREEN ."Shutting down KingdomCraft Dev Core ". C::WHITE . $this->getConfig()->get("Version"));
   }
-
-   public function spamCheck(PlayerChatEvent $event){
-        $player = $event->getPlayer();
-        $this->maxcaps = intval($this->getConfig()->get("max-caps"));
-        $message = $event->getMessage();
-        $strlen = strlen($message);
-        $asciiA = ord("A");
-        $asciiZ = ord("Z");
-        $count = 0;
-   for($i = 0; $i < $strlen; $i++){
-        $char = $message[$i];
-        $ascii = ord($char);
-   if($asciiA <= $ascii and $ascii <= $asciiZ){
-             $count++;
-      }
-   }
-   if ($count > $this->getMaxCaps()) {
-        $event->setCancelled(true);
-        $player->sendMessage("§7[§bKingdom§9Chat§7] §cYou used too much caps!");
-   }
-  }
-  public function getMaxCaps(){
-       return $this->maxcaps;
-  }
-  public function saveConfig(){
-       $this->getConfig()->set("max-caps", $this->getMaxCaps());
-       $this->getConfig()->save();
-  }
-
-   public function onDisable(){
-       $version = $this->getConfig()->get("Version");
-       $this->getLogger()->info("Shutting down KingdomCraft Core §b". $version);
-       $this->saveConfig();
        $this->getLogger()->info("Done!");
-   if($this->getConfig()->get("Dev_Mode") == "true"){
-       $this->getLogger()->info("§cCore is Shutting down...");
-       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name-Dev"));
-       $this->getLogger()->info("§cCore Shut Down!");
-     }
-   }
- }
+  }
+}

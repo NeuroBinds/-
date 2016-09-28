@@ -2,7 +2,7 @@ name: KingdomCore
 author: EpicSteve33
 main: KingdomCore\Main
 api: [2.0.0]
-version: 1.5
+version: 1.6
 commands:
  help:
   usage: /help
@@ -10,6 +10,6 @@ commands:
  hub:
   usage: /hub
   description: Main Hub Command
- flyon:
-  usage: Hub Only Command
-  description: Hub Only Command
+ fly:
+  usage: /flyon
+  description: fly Command
