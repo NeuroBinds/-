@@ -8,7 +8,6 @@ use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerHungerChangeEvent;
-use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\event\plugin\PluginDisableEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\event\Listener;
@@ -89,6 +88,7 @@ class Main extends PluginBase implements Listener {
        $this->getLogger()->info(C::GOLD ."AntiHacks Loaded");
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
        $this->getLogger()->info(C::GOLD ."ChatFilter Loaded");
+       $this->getServer()->getPluginManager()->registerEvents(new PortalListener($this), $this);
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name")); 
        $this->getLogger()->info(C::GRAY ."Everything Loaded!");
    }
@@ -162,7 +162,7 @@ class Main extends PluginBase implements Listener {
        $player->sendMessage(C::GRAY ."Plugins (3): ". C::GOLD ." KingdomAuth v1.0, KingdomCore ". $version .", SkyWarsCore v1.0");
        $event->setCancelled();
    }
-   elseif($cmd[0] === "/?" or $cmd[0] === "/version" or$cmd[0] === "/op" or $cmd[0] === "/deop" or $cmd[0] === "/effect" or $cmd[0] === "/kill" or $cmd[0] === "/enchant" or    $cmd[0] === "/weather" or $cmd[0] === "/summon" or $cmd[0] === "/xp"){
+   elseif($cmd[0] === "/?" or $cmd[0] === "/version" or $cmd[0] === "/op" or $cmd[0] === "/deop" or $cmd[0] === "/effect" or $cmd[0] === "/kill" or $cmd[0] === "/enchant" or $cmd[0] === "/weather" or $cmd[0] === "/summon" or $cmd[0] === "/xp"){
        $player->sendMessage(C::RED ."Unknown command. Try /help for a list of commands");
        $event->setCancelled();
    }
