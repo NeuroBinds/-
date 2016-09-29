@@ -62,8 +62,10 @@ use pocketmine\network\protocol\UseItemPacket;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
 use pocketmine\block\Block;
+use Alert\AlertTask;
 use ChatFilter\ChatFilterTask;
 use ChatFilter\ChatFilter;
+use AntiHack\AntiHackEventListener;
 
 class Main extends PluginBase implements Listener {
  
@@ -75,17 +77,19 @@ class Main extends PluginBase implements Listener {
        $this->filter = new ChatFilter();
        $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
        $this->getServer()->getPluginManager()->registerEvents($this ,$this);
-       $this->getServer()->getScheduler()->scheduleRepeatingTask(new Task($this), 2000);
-       $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
        $this->getServer()->loadLevel("PVP"); 
        $this->saveResource("config.yml");
        $this->saveDefaultConfig();
    if($this->getConfig()->get("Dev_Mode") == "true"){
-       $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core Dev Mode ". C::WHITE . $this->getConfig()->get("Version"));
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Dev-Server-Name"));       
    }
+       $this->getServer()->getScheduler()->scheduleRepeatingTask(new AlertTask($this), 2000);
+       $this->getLogger()->info(C::GOLD ."Alerts Loaded");
+       $this->getServer()->getPluginManager()->registerEvents(new AntiHackEventListener(), $this);
        $this->getLogger()->info(C::GOLD ."AntiHacks Loaded");
+       $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
+       $this->getLogger()->info(C::GOLD ."ChatFilter Loaded");
        $this->getLogger()->info("Done!");
    }
 
@@ -104,15 +108,12 @@ class Main extends PluginBase implements Listener {
        $br = C::RESET . C::WHITE . "\n";
        $text[0] = C::DARK_RED ."[". C::DARK_GRAY ."------------------------------------". C::DARK_RED ."]". $br . C::GRAY ."Welcome to ". C::AQUA ."Kingdom". C::BLUE ."Craft". $br . C::GRAY ."You are Playing on - play.kcmpe.net". $br . C::GRAY ."Hope you Enjoy you Stay!". $br .C::DARK_RED ."[". C::DARK_GRAY ."------------------------------------". C::DARK_RED ."]";
        $text[3] = C::BOLD . C::AQUA ."Kingdom". C::BLUE ."Craft";
-       $text[4] = C::AQUA . "Welcome Back ". C::WHITE . $player->getName();
+       $text[4] = C::AQUA . "Welcome, ". C::WHITE . $player->getName();
        $text[5] = C::AQUA . "There is ". C::WHITE . count($this->getServer()->getOnlinePlayers()) . C::AQUA ." players online";
        $this->Items($player);
        $this->setRank($player); 
        $player->sendMessage($text[0]);
        $level->addParticle(new FloatingTextParticle(new Vector3(170.5505, 67.8, 41.4863), $text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(202.5505, 67.8, 69.4863), C::DARK_PURPLE ."Staff". $br . C::AQUA ."Owners: ". C::WHITE." EnderPE, EpicSteve33". $br . C::AQUA ."Co-Owners: ". C::WHITE ." andrep0617, Realnanners". $br . C::AQUA ."Admins: ". C::WHITE ." caca559, LilBiggs11, EllieDoesGames". $br . C::AQUA ."Others: ". C::WHITE ." SmexiMexiG, PattyWak, GigsfanMC"), [$event->getPlayer()]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(202.5505, 67.8, 63.4863), C::RED ."§cRules". $br . C::AQUA ."#1: ". C::WHITE ." No Hacking". $br . C::AQUA ."#2: ". C::WHITE ." Do not Harass Other Players or Staff". $br . C::AQUA ."#3: ". C::WHITE ." Do not Ask to be Admin". $br . C::AQUA ."#4: ". C::WHITE ." Do not Share your account info"), [$event->getPlayer()]);
-
    }   
 
    public function onBlockBreak(BlockBreakEvent $event){
@@ -153,23 +154,10 @@ class Main extends PluginBase implements Listener {
    if($event->getFrom()->getLevel()->getBlockIdAt($event->getTo()->x, $event->getTo()->y, $event->getTo()->z) === Block::PORTAL and $z = 97 || $z = 96 || $z = 95 || $x = 172 || $x = 171 || $x = 170 || $x = 169 || $x = 168 || $x = 167 || $x = 166 || $x = 165 || $x = 164 || $x = 163 || $x = 162){
        $this->gamesLobby($player);
    }     
-  }
-
-  public function onAntiHack(PlayerMoveEvent $event){
-       $player = $event->getPlayer();
-       $br = C::RESET . C::WHITE . "\n";
-  if($event->isCancelled() or $player->isOp()  or $player->isCreative() or $player->isSpectator() or $player->getAllowFlight()) {
-  return;
   }  
-  else 
-  {
-  if(($player->getInAirTicks() > 30) >= 2000) {
-       $player->kick($br . $br . C::RED . $player->getName() . $br . $br ."KingdomCraft". C::RED ." Does not Allow Hacking". $br ."Turn off Hacks or Mods if you Have Any");
-    } 
-   }
-  }      
    
   public function onItemUse(DataPacketReceiveEvent $event){
+       $br = C::RESET . C::WHITE . "\n";
        $pk = $event->getPacket();
        $player = $event->getPlayer();
        $level = $event->getPlayer()->getLevel();
@@ -182,7 +170,9 @@ class Main extends PluginBase implements Listener {
        $this->Help($player);
    }
    elseif($item->getId() == $this->yml["Info-Item"] and $player->getLevel()->getName() == "hub"){ 
-       $player->teleport(new Vector3(205, 66, 66));
+       $text[1] = C::DARK_PURPLE ."Staff". $br . C::AQUA ."Owners: ". C::WHITE." EnderPE, EpicSteve33". $br . C::AQUA ."Co-Owners: ". C::WHITE ." andrep0617, Realnanners". $br . C::AQUA ."Admins: ". C::WHITE ." caca559, LilBiggs11, EllieDoesGames". $br . C::AQUA ."Others: ". C::WHITE ." SmexiMexiG, PattyWak, GigsfanMC"; 
+       $text[2] = C::RED ."§cRules". $br . C::AQUA ."#1: ". C::WHITE ." No Hacking". $br . C::AQUA ."#2: ". C::WHITE ." Do not Harass Other Players or Staff". $br . C::AQUA ."#3: ". C::WHITE ." Do not Ask to be Admin". $br . C::AQUA ."#4: ". C::WHITE ." Do not Share your account info";
+       $player->sendMessage($text[1] . $br . $br . $text[2]);
    }
    elseif($item->getId() == $this->yml["Hub-Item"] and $player->getLevel()->getName() == "hub"){
        $player->getLevel()->addSound(new EndermanTeleportSound($player));
@@ -219,7 +209,7 @@ class Main extends PluginBase implements Listener {
    elseif($cmd[0] === "/help"){ 
        $this->Help($player); 
        $event->setCancelled();
-   }
+   }  
    elseif($cmd[0] === "/hub" or $cmd[0] === "/lobby" or $cmd[0] === "/spawn"){ 
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $this->Items($player);
@@ -293,9 +283,9 @@ class Main extends PluginBase implements Listener {
 
   public function GameSigns(PlayerInteractEvent $event){
        $player = $event->getPlayer();
-       $kitText[1] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Archer " . C::AQUA ."kit". C::WHITE ." --"
-       $kitText[2] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Knight " . C::AQUA ."kit". C::WHITE ." --"
-       $kitText[3] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Flame " . C::AQUA ."kit". C::WHITE ." --"
+       $kitText[1] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Archer " . C::AQUA ."kit". C::WHITE ." --";
+       $kitText[2] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Knight " . C::AQUA ."kit". C::WHITE ." --";
+       $kitText[3] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Flame " . C::AQUA ."kit". C::WHITE ." --";
   if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
        $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
   if(!($sign instanceof Sign))
@@ -353,11 +343,11 @@ class Main extends PluginBase implements Listener {
        $ItemFlame->addEnchantment(Enchantment::getEnchantment(13)->setLevel(2)); 
        $ItemFlame->addEnchantment(Enchantment::getEnchantment(9)->setLevel(3)); 
        $tempTagYellow = new CompoundTag("", []);
-       $tempTagYellow->customColor = new IntTag("customColor", 987151);
+       $tempTagYellow->customColor = new IntTag("customColor", 15724314);
        $player->sendMessage($kitText[3]);
        $player->sendTip($kitText[3]);
        $this->setup($player);
-       $event->getPlayer()->getInventory()->setHelmet(Item::get(Item::LEATHER_CAP)->setCompoundTag($tempTagBlack));
+       $event->getPlayer()->getInventory()->setHelmet(Item::get(Item::LEATHER_CAP)->setCompoundTag($tempTagYellow));
        $event->getPlayer()->getInventory()->setChestplate(Item::get(Item::LEATHER_TUNIC)->setCompoundTag($tempTagYellow));
        $event->getPlayer()->getInventory()->setLeggings(Item::get(Item::LEATHER_PANTS)->setCompoundTag($tempTagYellow));
        $event->getPlayer()->getInventory()->setBoots(Item::get(Item::LEATHER_BOOTS)->setCompoundTag($tempTagYellow));
@@ -457,12 +447,7 @@ class Main extends PluginBase implements Listener {
   }
 
   public function onDisable(){
-       $this->getLogger()->info(C::GREEN ."Shutting down KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
-       $this->saveResource("config.yml");
-       $this->saveResource("rank.yml");
-  if($this->getConfig()->get("Dev_Mode") == "true"){
-       $this->getLogger()->info(C::GREEN ."Shutting down KingdomCraft Dev Core ". C::WHITE . $this->getConfig()->get("Version"));
-  }
+       $this->getLogger()->info(C::RED ."Shutting down KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
        $this->getLogger()->info("Done!");
   }
 }
