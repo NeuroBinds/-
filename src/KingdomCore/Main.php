@@ -63,9 +63,9 @@ use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
 use pocketmine\block\Block;
 use Alert\AlertTask;
+use AntiHack\AntiHackEventListener;
 use ChatFilter\ChatFilterTask;
 use ChatFilter\ChatFilter;
-use AntiHack\AntiHackEventListener;
 
 class Main extends PluginBase implements Listener {
  
@@ -76,8 +76,7 @@ class Main extends PluginBase implements Listener {
        $this->yml = $yml->getAll();
        $this->filter = new ChatFilter();
        $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
-       $this->getServer()->getPluginManager()->registerEvents($this ,$this);
-       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name"));       
+       $this->getServer()->getPluginManager()->registerEvents($this ,$this);      
        $this->getServer()->loadLevel("PVP"); 
        $this->saveResource("config.yml");
        $this->saveDefaultConfig();
@@ -90,12 +89,13 @@ class Main extends PluginBase implements Listener {
        $this->getLogger()->info(C::GOLD ."AntiHacks Loaded");
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
        $this->getLogger()->info(C::GOLD ."ChatFilter Loaded");
-       $this->getLogger()->info("Done!");
+       $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
+       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name")); 
+       $this->getLogger()->info(C::GRAY ."Everything Loaded!");
    }
 
    public function onRespawn(PlayerRespawnEvent $event){
        $player = $event->getPlayer();
-       $level = $this->getServer()->getLevelByName("hub");
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $this->Items($player);
        $this->setRank($player); 
@@ -107,54 +107,15 @@ class Main extends PluginBase implements Listener {
        $level = $this->getServer()->getLevelByName("hub");
        $br = C::RESET . C::WHITE . "\n";
        $text[0] = C::DARK_RED ."[". C::DARK_GRAY ."------------------------------------". C::DARK_RED ."]". $br . C::GRAY ."Welcome to ". C::AQUA ."Kingdom". C::BLUE ."Craft". $br . C::GRAY ."You are Playing on - play.kcmpe.net". $br . C::GRAY ."Hope you Enjoy you Stay!". $br .C::DARK_RED ."[". C::DARK_GRAY ."------------------------------------". C::DARK_RED ."]";
-       $text[3] = C::BOLD . C::AQUA ."Kingdom". C::BLUE ."Craft";
-       $text[4] = C::AQUA . "Welcome, ". C::WHITE . $player->getName();
-       $text[5] = C::AQUA . "There is ". C::WHITE . count($this->getServer()->getOnlinePlayers()) . C::AQUA ." players online";
+       $text[1] = C::BOLD . C::AQUA ."Kingdom". C::BLUE ."Craft";
+       $text[2] = C::AQUA . "Welcome, ". C::WHITE . $player->getName();
+       $text[3] = C::AQUA . "There is ". C::WHITE . count($this->getServer()->getOnlinePlayers()) . C::AQUA ." players online";
        $this->Items($player);
        $this->setRank($player); 
        $player->sendMessage($text[0]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(170.5505, 67.8, 41.4863), $text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(170.5505, 67.8, 41.4863), $text[1]. $br . $br .$text[2]. $br . $br .$text[3]), [$event->getPlayer()]);
    }   
 
-   public function onBlockBreak(BlockBreakEvent $event){
-         $player = $event->getPlayer();
-   if(!$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "hub" or !$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "PVP") {
-          $event->setCancelled(true);
-    }
-   }
-
-   public function onBlockPlace(BlockPlaceEvent $event){
-         $player = $event->getPlayer();
-   if(!$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "hub" or !$this->getConfig()->get("Dev_Mode") == "true" and $player->getLevel()->getName() == "PVP") {
-          $event->setCancelled(true);
-    }
-   }
-
-   public function GodMode(EntityDamageEvent $event){
-          $player = $event->getEntity();
-   if($player->getLevel()->getName() == "hub") {
-          $event->setCancelled(true);
-    } 
-   }
-   public function onHungerEvent(PlayerHungerChangeEvent $event){
-          $player = $event->getPlayer();
-   if($player->getLevel()->getName() == "hub") {
-          $event->setCancelled(true);
-    }
-   }
-   public function onDropItemEvent(PlayerDropItemEvent $event){
-       $player = $event->getPlayer();
-       $event->setCancelled(true);
-   }
-
-   public function onPortal(PlayerMoveEvent $event){
-       $player = $event->getPlayer();
-       $x = round($player->getX());
-       $z = round($player->getZ());
-   if($event->getFrom()->getLevel()->getBlockIdAt($event->getTo()->x, $event->getTo()->y, $event->getTo()->z) === Block::PORTAL and $z = 97 || $z = 96 || $z = 95 || $x = 172 || $x = 171 || $x = 170 || $x = 169 || $x = 168 || $x = 167 || $x = 166 || $x = 165 || $x = 164 || $x = 163 || $x = 162){
-       $this->gamesLobby($player);
-   }     
-  }  
    
   public function onItemUse(DataPacketReceiveEvent $event){
        $br = C::RESET . C::WHITE . "\n";
@@ -241,44 +202,6 @@ class Main extends PluginBase implements Listener {
        $player->sendMessage(C::RED ."Staff Only");
        $event->setCancelled();
    }
-  } 
-
-  public function signSetup(SignChangeEvent $event){
-      $player = $event->getPlayer();
-  if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
-      $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
-  if(!($sign instanceof Sign))
-  {
-  return true;
-  }
-       $sign = $event->getLines();
-  if($sign[0] == "hub" and $player->getLevel()->getName() == "hub"){
-       $event->setLine(0, C::DARK_RED ."[". C::GRAY ."-------------". C::DARK_RED ."]");
-       $event->setLine(1, C::AQUA ."KingdomCraft");
-       $event->setLine(2, C::AQUA ."0.16.0 Alpha");
-       $event->setLine(3, C::DARK_RED ."[". C::GRAY ."-------------". C::DARK_RED ."]");
-  } 
-  elseif($sign[0] == "kit1" and $player->getLevel()->getName() == "hub"){
-       $event->setLine(0, C::GRAY ."[" .C::AQUA ."Archer". C::GRAY ."]");
-       $event->setLine(1, C::WHITE ."kit1");
-       $event->setLine(3, C::WHITE ."Tap for Kit");
-  }
-  elseif($sign[0] == "kit2" and $player->getLevel()->getName() == "hub"){
-       $event->setLine(0, C::GRAY ."[" .C::RED ."Knight". C::GRAY ."]");
-       $event->setLine(1, C::WHITE ."kit2");
-       $event->setLine(3, C::WHITE ."Tap for Kit");
-  }
-  elseif($sign[0] == "kit3" and $player->getLevel()->getName() == "hub"){
-       $event->setLine(0, C::GRAY ."[" .C::GOLD ."Flame". C::GRAY ."]");
-       $event->setLine(1, C::WHITE ."kit3");
-       $event->setLine(3, C::WHITE ."Tap for Kit");
-  }
-  elseif($sign[0] == "coming" and $player->getLevel()->getName() == "hub"){
-       $event->setLine(0,"");
-       $event->setLine(1, C::WHITE ."More Kits");
-       $event->setLine(2, C::WHITE ."Coming Soon");
-    }
-   }
   }
 
   public function GameSigns(PlayerInteractEvent $event){
@@ -359,7 +282,7 @@ class Main extends PluginBase implements Listener {
     }
    } 
   }
-  
+ 
   public function onDeath(PlayerDeathEvent $event)  {
         $event->setDeathMessage("");
         $cause = $event->getEntity()->getLastDamageCause();
@@ -373,6 +296,44 @@ class Main extends PluginBase implements Listener {
         $player->setMaxHealth(20);
         $player->getInventory()->clearAll();
      }
+    }
+   }
+  }
+
+  public function signSetup(SignChangeEvent $event){
+      $player = $event->getPlayer();
+  if($event->getBlock()->getID() == 323 || $event->getBlock()->getID() == 63 || $event->getBlock()->getID() == 68){
+      $sign = $event->getPlayer()->getLevel()->getTile($event->getBlock());
+  if(!($sign instanceof Sign))
+  {
+  return true;
+  }
+       $sign = $event->getLines();
+  if($sign[0] == "hub" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::DARK_RED ."[". C::GRAY ."-------------". C::DARK_RED ."]");
+       $event->setLine(1, C::AQUA ."KingdomCraft");
+       $event->setLine(2, C::AQUA ."0.16.0 Alpha");
+       $event->setLine(3, C::DARK_RED ."[". C::GRAY ."-------------". C::DARK_RED ."]");
+  } 
+  elseif($sign[0] == "kit1" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::GRAY ."[" .C::AQUA ."Archer". C::GRAY ."]");
+       $event->setLine(1, C::WHITE ."kit1");
+       $event->setLine(3, C::WHITE ."Tap for Kit");
+  }
+  elseif($sign[0] == "kit2" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::GRAY ."[" .C::RED ."Knight". C::GRAY ."]");
+       $event->setLine(1, C::WHITE ."kit2");
+       $event->setLine(3, C::WHITE ."Tap for Kit");
+  }
+  elseif($sign[0] == "kit3" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0, C::GRAY ."[" .C::GOLD ."Flame". C::GRAY ."]");
+       $event->setLine(1, C::WHITE ."kit3");
+       $event->setLine(3, C::WHITE ."Tap for Kit");
+  }
+  elseif($sign[0] == "coming" and $player->getLevel()->getName() == "hub"){
+       $event->setLine(0,"");
+       $event->setLine(1, C::WHITE ."More Kits");
+       $event->setLine(2, C::WHITE ."Coming Soon");
     }
    }
   }
