@@ -89,7 +89,6 @@ class Main extends PluginBase implements Listener {
        $this->getLogger()->info(C::GOLD ."AntiHacks Loaded");
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
        $this->getLogger()->info(C::GOLD ."ChatFilter Loaded");
-       $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name")); 
        $this->getLogger()->info(C::GRAY ."Everything Loaded!");
    }
