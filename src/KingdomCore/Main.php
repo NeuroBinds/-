@@ -40,8 +40,8 @@ use pocketmine\level\Position;
 use pocketmine\level\Position\getLevel;
 use pocketmine\plugin\PluginManager;
 use pocketmine\plugin\Plugin;
+use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\math\Vector3;
-use pocketmine\utils\TextFormat as C;
 use pocketmine\utils\Config;
 use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\entity\Entity;
@@ -49,13 +49,16 @@ use pocketmine\utils\Random;
 use pocketmine\network\protocol\UseItemPacket;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
+use pocketmine\utils\TextFormat as C;
 use pocketmine\block\Block;
 use Alert\AlertTask;
 use AntiHack\AntiHackEventListener;
+use Border\BorderListener;
 use ChatFilter\ChatFilterTask;
 use ChatFilter\ChatFilter;
 use KitPvP\PvP;
 use Portal\PortalListener;
+use KingdomCore\Main;
 
 class Main extends PluginBase implements Listener {
  
@@ -64,7 +67,6 @@ class Main extends PluginBase implements Listener {
    public function onEnable(){
        $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);
        $this->yml = $yml->getAll();
-       $this->filter = new ChatFilter();
        $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
        $this->getServer()->getPluginManager()->registerEvents($this ,$this);      
        $this->getServer()->loadLevel("PVP"); 
@@ -73,15 +75,15 @@ class Main extends PluginBase implements Listener {
    if($this->getConfig()->get("Dev_Mode") == "true"){
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Dev-Server-Name"));       
    }
+       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name")); 
+       $this->getLogger()->info(C::GRAY ."Enabling All Core Tasks!");
+       $this->filter = new ChatFilter();
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new AlertTask($this), 2000);
-       $this->getLogger()->info(C::GOLD ."Alerts Loaded");
        $this->getServer()->getPluginManager()->registerEvents(new AntiHackEventListener(), $this);
-       $this->getLogger()->info(C::GOLD ."AntiHacks Loaded");
+       $this->getServer()->getPluginManager()->registerEvents(new BorderListener($this), $this);
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
-       $this->getLogger()->info(C::GOLD ."ChatFilter Loaded");
        $this->getServer()->getPluginManager()->registerEvents(new PvP($this), $this);
        $this->getServer()->getPluginManager()->registerEvents(new PortalListener($this), $this);
-       $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name")); 
        $this->getLogger()->info(C::GRAY ."Everything Loaded!");
    }
 
@@ -151,7 +153,7 @@ class Main extends PluginBase implements Listener {
        $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
        $rank = $rankyml->get($player->getName());
    if($cmd[0] === "/plugins"){
-       $player->sendMessage(C::GRAY ."Plugins (3): ". C::GOLD ." KingdomAuth v1.0, KingdomCore ". $version .", SkyWarsCore v1.0");
+       $player->sendMessage(C::GRAY ."Plugins (3):". C::GOLD ." KingdomAuth v1.0, KingdomCore ". $version .", SkyWarsCore v1.0");
        $event->setCancelled();
    }
    elseif($cmd[0] === "/?" or $cmd[0] === "/version" or $cmd[0] === "/op" or $cmd[0] === "/deop" or $cmd[0] === "/effect" or $cmd[0] === "/kill" or $cmd[0] === "/enchant" or $cmd[0] === "/weather" or $cmd[0] === "/summon" or $cmd[0] === "/xp"){
@@ -185,7 +187,7 @@ class Main extends PluginBase implements Listener {
    elseif($cmd[0] === "/flyon" and $player->isOp() and $player->getLevel()->getName() == "hub" or $cmd[0] === "/fly" and $player->isOp() and $player->getLevel()->getName() == "hub" ){
        $player = $event->getPlayer();
        $player->setAllowFlight(true);
-       $player->sendMessage(C::GOLD ."Flight was Turned ". C::GREEN ." On");
+       $player->sendMessage(C::GOLD ."Flight was Turned". C::GREEN ." On");
        $event->setCancelled();
    }
    elseif($cmd[0] === "/flyon" and !$player->isOp() or $cmd[0] === "/gms" and !$player->isOp() or $cmd[0] === "/gmc" and !$player->isOp()){
@@ -234,6 +236,7 @@ class Main extends PluginBase implements Listener {
   }
 
   public function gamesLobby($player){
+       $player->setAllowFlight(false);
        $player->getLevel()->addSound(new EndermanTeleportSound($player));
        $player->sendMessage("-- ". C::AQUA ." Welcome to Games Lobby ". C::WHITE ." --");
        $player->teleport(new Vector3(165, 74, 201));
@@ -245,6 +248,7 @@ class Main extends PluginBase implements Listener {
   }
  
   public function setup($player){
+       $player->setAllowFlight(false);
        $player->setMaxHealth(40);
        $player->setHealth(40);
        $player->setFood(20);
@@ -317,6 +321,20 @@ class Main extends PluginBase implements Listener {
      }
     }
    }
+  }
+
+  public function onHungerEvent(PlayerHungerChangeEvent $event){
+          $player = $event->getPlayer();
+  if($player->getLevel()->getName() == "hub") {
+          $event->setCancelled(true);
+    }
+   }
+
+  public function GodMode(EntityDamageEvent $event){
+          $player = $event->getEntity();
+  if($player->getLevel()->getName() == "hub") {
+          $event->setCancelled(true);
+   } 
   }
 
   public function onDisable(){
