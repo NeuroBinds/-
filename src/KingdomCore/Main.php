@@ -43,6 +43,7 @@ use pocketmine\plugin\Plugin;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Config;
+use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\entity\Entity;
 use pocketmine\utils\Random;
@@ -84,7 +85,11 @@ class Main extends PluginBase implements Listener {
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChatFilterTask($this), 30);
        $this->getServer()->getPluginManager()->registerEvents(new PvP($this), $this);
        $this->getServer()->getPluginManager()->registerEvents(new PortalListener($this), $this);
-       $this->getLogger()->info(C::GRAY ."Everything Loaded!");
+       $this->getLogger()->info(C::GREEN ."Everything Loaded!");
+   }
+
+   public function ConfigAntiHack(){
+       $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);   
    }
 
    public function onRespawn(PlayerRespawnEvent $event){
@@ -106,12 +111,11 @@ class Main extends PluginBase implements Listener {
        $text[3] = C::AQUA . "There is ". C::WHITE . count($this->getServer()->getOnlinePlayers()) . C::AQUA ." players online";
        $text[4] = C::AQUA . "Follow us on Twitter". C::WHITE ." @KingdomCraft33";
        $text[5] = C::AQUA . "Check out Our Website". C::WHITE ." kcmcpe.net";
-       $text[6] = C::AQUA . "Tip:". C::WHITE ." You can fly Around the hub";
        $player->getInventory()->clearAll();
        $this->Items($player);
        $this->setRank($player); 
        $player->sendMessage($text[0]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(171.5505, 68.8, 42.4863), $text[1]. $br . $br .$text[2]. $br . $br .$text[3]. $br . $br .$text[4]. $br . $br .$text[5]. $br . $br .$text[6]), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(171.5505, 68.8, 42.4863), $text[1]. $br . $br .$text[2]. $br . $br .$text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
    }   
 
    
@@ -155,6 +159,19 @@ class Main extends PluginBase implements Listener {
    }
   }
 
+  public function onHouseEnter(PlayerMoveEvent $event){
+       $player = $event->getPlayer();
+       $x = round($player->getX());
+       $y = round($player->getY());
+       $z = round($player->getZ());
+  if(($x >= 166 and $x <= 168) and ($y >= 66 and $y <= 67) and ($z >= 86) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 1){
+       $player->sendPopup(C::GOLD ."[NPC]". C::WHITE ." Welcome ". $player->getName());
+  }
+  elseif(($x >= 166 and $x <= 168) and ($y >= 66 and $y <= 67) and ($z >= 86) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 3){
+       $player->sendPopup(C::GOLD ."[NPC]". C::WHITE ." Goodbye ". $player->getName());
+   }
+  }
+
   public function chatFilter(PlayerChatEvent $event) {
         $player = $event->getPlayer();
         $level = $event->getPlayer()->getLevel();
@@ -169,7 +186,7 @@ class Main extends PluginBase implements Listener {
        $message = $event->getMessage();
        $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
        $rank = $rankyml->get($player->getName());
-       $event->setFormat(C::GRAY ."0: ". C::GOLD . $player->getName() . C::WHITE ." > ". $message);
+       $event->setFormat(C::GOLD ."0". C::WHITE .": ". $player->getName() . C::WHITE ." > ". $message);
   if($rank == "VIP"){
        $event->setFormat(C::GRAY ."[". C::GOLD ."VIP". C::GRAY ."] ". C::AQUA . $player->getName() . C::WHITE ." > ". $message);
   }
@@ -205,16 +222,20 @@ class Main extends PluginBase implements Listener {
        $this->Help($player); 
        $event->setCancelled();
    }  
-   elseif($cmd[0] === "/hub" or $cmd[0] === "/lobby" or $cmd[0] === "/spawn"){ 
+   elseif($cmd[0] === "/hub"){ 
+       $player->getInventory()->clearAll();
        $player->getLevel()->addSound(new EndermanTeleportSound($player));
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
-       $player->getInventory()->clearAll();
-       $this->Items($player);
        $this->setRank($player);  
+       $this->Items($player);
        $event->setCancelled(true);
    }
    elseif($cmd[0] === "/gm"){ 
        $this->HelpGamemode($player); 
+       $event->setCancelled(); 
+   }
+   elseif($cmd[0] === "/test"){
+       $player->sendMessage("Direction = '". round($player->getDirection()) ."'");
        $event->setCancelled(); 
    }
    elseif($cmd[0] === "/gms" and $player->isOp() and $player->getLevel()->getName() == "hub"){ 
@@ -227,8 +248,14 @@ class Main extends PluginBase implements Listener {
        $player->sendMessage(C::GOLD ."Your Gamemode has been updated");
        $event->setCancelled();
    } 
-   elseif($cmd[0] === "/flyon" or $cmd[0] === "/fly"){
-       $player->sendMessage(C::RED ."You can fly at Hub :)");
+   elseif($player->getLevel()->getName() == "hub" and $player->isOp() and $cmd[0] === "/flyon"){ 
+       $player->sendMessage(C::GREEN ."You are now in Flight mode!");
+       $player->setAllowFlight(true);
+       $event->setCancelled();
+   }
+   elseif($cmd[0] === "/flyon" and !$player->getLevel()->getName() == "hub"){
+       $player->sendMessage(C::RED ."Woah! You cannot use that here");
+       $player->setAllowFlight(false);
        $event->setCancelled();
    }
    elseif($cmd[0] === "/gms" and !$player->isOp() or $cmd[0] === "/gmc" and !$player->isOp() and $cmd[0] === "/gamemode" and !$player->isOp()){
@@ -263,7 +290,7 @@ class Main extends PluginBase implements Listener {
        $event->setLine(3, C::WHITE ."Tap for Kit");
   }
   elseif($sign[0] == "kit3" and $player->getLevel()->getName() == "game1"){
-       $event->setLine(0, C::GRAY ."[" .C::GOLD ."Flame". C::GRAY ."]");
+       $event->setLine(0, C::GRAY ."[" .C::GOLD ."Knockback". C::GRAY ."]");
        $event->setLine(1, C::WHITE ."kit3");
        $event->setLine(3, C::WHITE ."Tap for Kit");
     }
@@ -281,6 +308,13 @@ class Main extends PluginBase implements Listener {
        $player->setGamemode(0);
        $player->getInventory()->setItem(8, Item::get(345, 0, 1)->setCustomName(C::GREEN ."Hub"));
   }
+
+  public function parkourLobby($player){
+       $player->setAllowFlight(false);
+       $player->getLevel()->addSound(new EndermanTeleportSound($player));
+       $player->sendPopup("-- ". C::RED ." This is not Ready ". C::WHITE ." --");
+       $player->knockBack($player, 0, -1, 0, 0.5);
+  }
  
   public function setup($player){
        $player->setAllowFlight(false);
@@ -293,7 +327,7 @@ class Main extends PluginBase implements Listener {
   public function setRank($player){
        $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
        $rank = $rankyml->get($player->getName());
-       $player->setNameTag(C::GOLD ."0: ". C::WHITE . $player->getName());
+       $player->setNameTag(C::GOLD ."0". C::WHITE .": ". $player->getName());
   if($rank == "VIP"){
        $player->setNameTag(C::GRAY ."[". C::GOLD ."VIP". C::GRAY ."] ". C::AQUA . $player->getName());
   }
@@ -323,7 +357,6 @@ class Main extends PluginBase implements Listener {
 
 
   public function Items($player){
-       $player->setAllowFlight(true);
        $player->getInventory()->setItem(0, Item::get(378, 0, 1)->setCustomName(C::GREEN ."Games"));
        $player->getInventory()->setItem(3, Item::get(369, 0, 1)->setCustomName(C::GREEN ."Parkour"));
        $player->getInventory()->setItem(4, Item::get(288, 0, 1)->setCustomName(C::GREEN ."Leaper"));
@@ -343,16 +376,11 @@ class Main extends PluginBase implements Listener {
         $killer = $cause->getDamager();
   if($killer instanceof Player){
   if($player->getLevel()->getName() == "PVP"){
-  if($event->getDamage() >= $player->getHealth()){
-        $player->getInventory()->clearAll();
         $player->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());     
         $player->setMaxHealth(20);
         $player->setHealth(20);
-        $this->Items($player);
-        $this->setRank($player);
         $killer->sendMessage(C::GOLD ."You Killed ". C::WHITE . $player->getName());
         $player->sendMessage(C::GOLD ."You were Killed by ". C::WHITE . $killer->getName());
-        $player->sendTip(C::RED ."You Died");
         $player->getInventory()->clearAll();
       }
      }
@@ -386,7 +414,7 @@ class Main extends PluginBase implements Listener {
   }
 
   public function onBreak(BlockBreakEvent $event){
-          $player = $event->getEntity();
+          $player = $event->getPlayer();
   if($player->getLevel()->getName() == "hub" and !$this->getConfig()->get("Dev_Mode") == "true"){
           $event->setCancelled(true);
   }
@@ -399,7 +427,7 @@ class Main extends PluginBase implements Listener {
   }
 
   public function onPlace(BlockPlaceEvent $event){
-          $player = $event->getEntity();
+          $player = $event->getPlayer();
   if($player->getLevel()->getName() == "hub" and !$this->getConfig()->get("Dev_Mode") == "true"){
           $event->setCancelled(true);
   }

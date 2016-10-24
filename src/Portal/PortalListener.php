@@ -18,12 +18,16 @@ class PortalListener extends PluginBase implements Listener {
        $this->plugin = $plugin;
    }
 
-   public function onPortal(PlayerMoveEvent $event){
+   public function onPortalGame(PlayerMoveEvent $event){
        $player = $event->getPlayer();
-   if($player->getLevel()->getName() == "hub"){
-   if($event->getFrom()->getLevel()->getBlockIdAt($event->getTo()->x, $event->getTo()->y, $event->getTo()->z) === Block::PORTAL){
-      $this->plugin->gamesLobby($player);
-    }     
+       $x = round($player->getX());
+       $y = round($player->getY());
+       $z = round($player->getZ());
+   if(($x >= 163 and $x <= 171) and ($y >= 66 and $y <= 69) and ($z >= 35 and $z <= 35) and $player->getLevel()->getName() == "hub"){
+       $this->plugin->gamesLobby($player); 
    }
-  }
+   elseif(($x >= 198 and $x <= 199) and ($y >= 66 and $y <= 70) and ($z >= 62 and $z <= 70) and $player->getLevel()->getName() == "hub"){
+       $this->plugin->parkourLobby($player); 
+       }
+      }
 }

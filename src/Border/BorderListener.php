@@ -19,18 +19,14 @@ class BorderListener extends PluginBase implements Listener {
        $this->plugin = $plugin;
    }
 
-   public function onBorder(PlayerMoveEvent $event){
+   public function onBorderHub(PlayerMoveEvent $event){
        $player = $event->getPlayer();
-       $y = $event->getTo()->getFloorY();
-       $z = $event->getFrom()->getFloorZ();
-       $x = $event->getFrom()->getFloorX();
-   if($player->getLevel()->getName() == "hub" and $y < 63 || $y > 86){
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn()); 
-       $player->sendPopup(C::RED ."Sorry but you cannot go here!");
-   }
-   elseif($player->getLevel()->getName() == "hub" and $z < 33 || $z > 99 || $x > 200 || $x < 115){
+       $x = round($player->getX());
+       $y = round($player->getY());
+       $z = round($player->getZ());
+   if(($x >= 200 || $x <= 115) || ($y >= 79 || $y <= 64) || ($z >= 99 || $z <= 33) and $player->getLevel()->getName() == "hub"){
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn()); 
        $player->sendPopup(C::RED ."Woah You can't leave Spawn!");
-     }
     }
-}  
+   }
+}
