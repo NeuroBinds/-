@@ -11,26 +11,12 @@ Dev-Server-Name: §bKingdom§9Dev§c
 Version: Beta 1.6
 
 ## Server Ip Domain ##
-Server-IP: play.kcmcpe.net
-
-## Help Messages ##
-Help-Command1: §b== Help Page 1 of 1 ==
-Help-Command2: §b/hub:§f Teleport player to hub
-Help-Command3: §b/help:§f {Page} lists all Commands
-Help-Command4: §b/msg:§f {player} Sends a private message to the given player
-Help-Command5: §b/gm:§f Allows Staff to Change Gamemode 
-Help-Command6: §b/flyon:§f Allows Admins to fly
-
-## Gamemode Help Messages ##
-GM-Help-Command1: §b== Gamemode Help Page 1 of 1 ==
-GM-Help-Command2: §b/gms:§f Survival
-GM-Help-Command3: §b/gmc:§f Creative
-GM-Help-Command4: §b/gma:§f Coming Soon
-GM-Help-Command5: §b/gmspc:§f Coming Soon      
+Server-IP: play.kcmcpe.net  
 
 ## Items ##
-Games-Item: 264
-Help-Item: 340
-Info-Item: 339
-Hub-Item: 406
+Games-Item: 378
+Parkour-Item: 369
+Leaper-Item: 288
+Help-Item: 339
+Hub-Item: 345
 ...
