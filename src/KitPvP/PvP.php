@@ -34,17 +34,12 @@ class PvP extends PluginBase implements Listener {
 
   public function GameSigns(PlayerInteractEvent $event){
        $player = $event->getPlayer();
-       $xyz1 = new Vector3(-298, 5, -454);
-       $xyz2 = new Vector3(-271, 5, -410);
-       $xyz3 = new Vector3(-330, 5, -356);
-       $xyz4 = new Vector3(-335, 6, -346);
-       $xyz5 = new Vector3(-319, 5, -433);
-       $xyz6 = new Vector3(-360, 30, -405);
-       $xyz7 = new Vector3(-367, 7, -388);
-       $xyz8 = new Vector3(-344, 5, -436);
-       $xyz9 = new Vector3(-277, 5, -439);
-       $xyz10 = new Vector3(-281, 6, -378);
-       $input = array($xyz1, $xyz2, $xyz3, $xyz4, $xyz5, $xyz6, $xyz7, $xyz8, $xyz9, $xyz10);
+       $input = array(
+       new Vector3(-298, 5, -454), new Vector3(-271, 5, -410), 
+       new Vector3(-330, 5, -356), new Vector3(-335, 6, -346), 
+       new Vector3(-319, 5, -433), new Vector3(-360, 30, -405), 
+       new Vector3(-367, 7, -388), new Vector3(-344, 5, -436), 
+       new Vector3(-277, 5, -439), new Vector3(-281, 6, -378));
        $spawns = array_rand($input);
        $kitText[1] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Archer " . C::AQUA ."kit". C::WHITE ." --";
        $kitText[2] = "-- ". C::AQUA ."You are playing with the". C::WHITE . " Knight " . C::AQUA ."kit". C::WHITE ." --";
