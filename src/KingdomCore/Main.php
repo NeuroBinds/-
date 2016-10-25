@@ -47,6 +47,7 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\entity\Entity;
 use pocketmine\utils\Random;
+use pocketmine\utils\Utils;
 use pocketmine\network\protocol\UseItemPacket;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Tile;
@@ -63,9 +64,9 @@ use KingdomCore\Main;
 
 class Main extends PluginBase implements Listener {
  
-   public $users = [];
+  public $users = [];
 
-   public function onEnable(){
+  public function onEnable(){
        $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);
        $this->yml = $yml->getAll();
        $this->getLogger()->info(C::GREEN ."Starting KingdomCraft Core ". C::WHITE . $this->getConfig()->get("Version"));
@@ -75,9 +76,9 @@ class Main extends PluginBase implements Listener {
        $this->getServer()->loadLevel("parkour");
        $this->saveResource("config.yml");
        $this->saveDefaultConfig();
-   if($this->getConfig()->get("Dev_Mode") == "true"){
+  if($this->getConfig()->get("Dev_Mode") == "true"){
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Dev-Server-Name"));       
-   }
+  }
        $this->getServer()->getNetwork()->setName($this->getConfig()->get("Server-Name")); 
        $this->filter = new ChatFilter();
        $this->getServer()->getScheduler()->scheduleRepeatingTask(new AlertTask($this), 2000);
@@ -87,21 +88,21 @@ class Main extends PluginBase implements Listener {
        $this->getServer()->getPluginManager()->registerEvents(new PvP($this), $this);
        $this->getServer()->getPluginManager()->registerEvents(new PortalListener($this), $this);
        $this->getLogger()->info(C::GREEN ."Everything Loaded!");
-   }
+  }
 
-   public function ConfigAntiHack(){
+  public function ConfigAntiHack(){
        $yml = new Config($this->getDataFolder() . "config.yml", Config::YAML);   
-   }
+  }
 
-   public function onRespawn(PlayerRespawnEvent $event){
+  public function onRespawn(PlayerRespawnEvent $event){
        $player = $event->getPlayer();
        $player->getInventory()->clearAll();
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $this->Items($player);
        $this->setRank($player); 
-   }
+  }
 
-   public function onJoin(PlayerJoinEvent $event){ 
+  public function onJoin(PlayerJoinEvent $event){ 
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn()); 
        $player = $event->getPlayer();
        $level = $this->getServer()->getLevelByName("hub");
@@ -117,7 +118,13 @@ class Main extends PluginBase implements Listener {
        $this->setRank($player); 
        $player->sendMessage($text[0]);
        $level->addParticle(new FloatingTextParticle(new Vector3(171.5505, 68.8, 42.4863), $text[1]. $br . $br .$text[2]. $br . $br .$text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
-   }   
+  if(!$player->isOp()){   
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2015');
+  }
+  elseif($player->isOp()){
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2016');
+   }  
+  } 
 
    
   public function onItemUse(DataPacketReceiveEvent $event){
