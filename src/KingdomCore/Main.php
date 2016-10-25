@@ -72,6 +72,7 @@ class Main extends PluginBase implements Listener {
        $this->getServer()->getPluginManager()->registerEvents($this ,$this);      
        $this->getServer()->loadLevel("PVP"); 
        $this->getServer()->loadLevel("game1"); 
+       $this->getServer()->loadLevel("parkour");
        $this->saveResource("config.yml");
        $this->saveDefaultConfig();
    if($this->getConfig()->get("Dev_Mode") == "true"){
@@ -94,8 +95,8 @@ class Main extends PluginBase implements Listener {
 
    public function onRespawn(PlayerRespawnEvent $event){
        $player = $event->getPlayer();
-       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $player->getInventory()->clearAll();
+       $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $this->Items($player);
        $this->setRank($player); 
    }
@@ -130,8 +131,7 @@ class Main extends PluginBase implements Listener {
        $this->Help($player);
    }
    elseif($item->getId() == $this->yml["Parkour-Item"] and $player->getLevel()->getName() == "hub"){ 
-       $player->sendMessage(C::RED ."Sorry This is not ready yet!");
-       $player->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());   
+       $this->parkourLobby($player);   
    }
    elseif($item->getId() == $this->yml["Hub-Item"] and $player->getLevel()->getName() == "hub" or $item->getId() == $this->yml["Hub-Item"] and $player->getLevel()->getName() == "game1"){
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
@@ -159,18 +159,24 @@ class Main extends PluginBase implements Listener {
    }
   }
 
-  public function onHouseEnter(PlayerMoveEvent $event){
-       $player = $event->getPlayer();
-       $x = round($player->getX());
-       $y = round($player->getY());
-       $z = round($player->getZ());
-  if(($x >= 166 and $x <= 168) and ($y >= 66 and $y <= 67) and ($z >= 86) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 1){
-       $player->sendPopup(C::GOLD ."[NPC]". C::WHITE ." Welcome ". $player->getName());
-  }
-  elseif(($x >= 166 and $x <= 168) and ($y >= 66 and $y <= 67) and ($z >= 86) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 3){
-       $player->sendPopup(C::GOLD ."[NPC]". C::WHITE ." Goodbye ". $player->getName());
-   }
-  }
+//  public function onEnterAndExit(PlayerMoveEvent $event){
+//       $player = $event->getPlayer();
+//       $x = round($player->getX());
+//       $y = round($player->getY());
+//       $z = round($player->getZ());
+//  if(($x >= 166 and $x <= 168) and ($y >= 66 and $y <= 67) and ($z >= 86) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 1){
+//       $player->sendPopup(C::GOLD . "[NPC]" . C::WHITE ." Welcome ". $player->getName());
+//  }
+//  elseif(($x >= 166 and $x <= 168) and ($y >= 66 and $y <= 67) and ($z >= 86) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 3){
+//       $player->sendPopup(C::GOLD ."[NPC]". C::WHITE ." Goodbye ". $player->getName());
+//  }
+//  elseif(($x >= 135) and ($y >= 66 and $y <= 67) and ($z <= 61 and $z <= 71) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 2){
+//       $player->sendPopup(C::GOLD ."[Cafe Manager]". C::WHITE ." Welcome ". $player->getName() ." To the Cafe");
+//  }
+//  elseif(($x >= 135) and ($y >= 66 and $y <= 67) and ($z <= 61 and $z <= 71) and $player->getLevel()->getName() == "hub" and $player->getDirection() == 0){
+//       $player->sendPopup(C::GOLD ."[Cafe Manager]". C::WHITE ." Hope you come Again ". $player->getName());
+//   }
+//  }
 
   public function chatFilter(PlayerChatEvent $event) {
         $player = $event->getPlayer();
@@ -312,8 +318,13 @@ class Main extends PluginBase implements Listener {
   public function parkourLobby($player){
        $player->setAllowFlight(false);
        $player->getLevel()->addSound(new EndermanTeleportSound($player));
-       $player->sendPopup("-- ". C::RED ." This is not Ready ". C::WHITE ." --");
-       $player->knockBack($player, 0, -1, 0, 0.5);
+       $player->sendMessage("-- ". C::AQUA ." Welcome to Games Lobby ". C::WHITE ." --");
+       $player->teleport(Server::getInstance()->getLevelByName("parkour")->getSafeSpawn());     
+       $player->setHealth(20);
+       $player->setFood(20);
+       $player->getInventory()->clearAll();
+       $player->setGamemode(0);
+       $player->getInventory()->setItem(8, Item::get(345, 0, 1)->setCustomName(C::GREEN ."Hub"));
   }
  
   public function setup($player){
@@ -368,28 +379,22 @@ class Main extends PluginBase implements Listener {
        $player->setFood(20);
   }
 
-  public function onDeath(EntityDamageEvent $event){
+  public function onDeathMessage(PlayerDeathEvent $event){
+        $event->setDeathMessage("");
         $player = $event->getEntity();
         $cause = $event->getEntity()->getLastDamageCause();
   if($cause instanceof EntityDamageByEntityEvent) {
         $player = $event->getEntity();
         $killer = $cause->getDamager();
   if($killer instanceof Player){
-  if($player->getLevel()->getName() == "PVP"){
-        $player->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());     
+  if($player->getLevel()->getName() == "PVP"){     
         $player->setMaxHealth(20);
-        $player->setHealth(20);
         $killer->sendMessage(C::GOLD ."You Killed ". C::WHITE . $player->getName());
         $player->sendMessage(C::GOLD ."You were Killed by ". C::WHITE . $killer->getName());
         $player->getInventory()->clearAll();
-      }
      }
     }
    } 
-  }
-
-  public function onDeathMessage(PlayerDeathEvent $event)  {
-        $event->setDeathMessage("");
   }
 
   public function onHungerEvent(PlayerHungerChangeEvent $event){
