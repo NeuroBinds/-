@@ -117,15 +117,10 @@ class Main extends PluginBase implements Listener {
        $this->Items($player);
        $this->setRank($player); 
        $player->sendMessage($text[0]);
-       $level->addParticle(new FloatingTextParticle(new Vector3(171.5505, 68.8, 42.4863), $text[1]. $br . $br .$text[2]. $br . $br .$text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
-  if(!$player->isOp()){   
-       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2015');
+       $level->addParticle(new FloatingTextParticle(new Vector3(171.5505, 68.8, 42.4863), "", $text[1]. $br . $br .$text[2]. $br . $br .$text[3]. $br . $br .$text[4]. $br . $br .$text[5]), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(175.5505, 65.8, 66.4863), "", C::AQUA ."Parkour"), [$event->getPlayer()]);
+       $level->addParticle(new FloatingTextParticle(new Vector3(158.5505, 65.8, 66.4863), "", C::AQUA ."Cafe"), [$event->getPlayer()]);
   }
-  elseif($player->isOp()){
-       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2016');
-   }  
-  } 
-
    
   public function onItemUse(DataPacketReceiveEvent $event){
        $br = C::RESET . C::WHITE . "\n";
@@ -134,22 +129,22 @@ class Main extends PluginBase implements Listener {
        $level = $event->getPlayer()->getLevel();
    if($pk instanceof UseItemPacket and $pk->face === 0xff) {
        $item = $player->getInventory()->getItemInHand();
-   if($item->getId() == $this->yml["Help-Item"] and $player->getLevel()->getName() == "hub"){
+   if($item->getName() == C::GREEN ."Help"){
        $this->Help($player);
    }
-   elseif($item->getId() == $this->yml["Parkour-Item"] and $player->getLevel()->getName() == "hub"){ 
+   elseif($item->getName() == C::GREEN ."Parkour"){ 
        $this->parkourLobby($player);   
    }
-   elseif($item->getId() == $this->yml["Hub-Item"] and $player->getLevel()->getName() == "hub" or $item->getId() == $this->yml["Hub-Item"] and $player->getLevel()->getName() == "game1"){
+   elseif($item->getName() == C::GREEN ."Hub"){
        $event->getPlayer()->teleport(Server::getInstance()->getLevelByName("hub")->getSafeSpawn());
        $player->getInventory()->clearAll();
        $this->Items($player);
        $this->setRank($player); 
    }
-   elseif($item->getId() == $this->yml["Games-Item"] and $player->getLevel()->getName() == "hub"){
+   elseif($item->getName() == C::GREEN ."Games"){
        $this->gamesLobby($player); 
    }
-   elseif($item->getId() == $this->yml["Leaper-Item"] and $player->getLevel()->getName() == "hub"){ 
+   elseif($item->getName() == C::GREEN ."Leaper"){ 
    if($player->getDirection() == 0){
        $player->knockBack($player, 0, 1, 0, 1);
    }
@@ -248,8 +243,18 @@ class Main extends PluginBase implements Listener {
        $event->setCancelled(); 
    }
    elseif($cmd[0] === "/test"){
-       $player->sendMessage("Direction = '". round($player->getDirection()) ."'");
+       $player->sendMessage("Your Direction '". round($player->getDirection()) ."'");
+       $player->sendMessage("Your Name is '". $player->getName() ."'");
+       $player->sendMessage("Your XYZ is '". round($player->getX()) ." / ". round($player->getY()) ." / ". round($player->getZ()) ."'");
+       $player->sendMessage("Your Currently in '". $player->getLevel()->getName() ."'");
        $event->setCancelled(); 
+   }
+   elseif($cmd[0] === "/cape" and $player->isOp()){
+       $input = array('Minecon_MineconSteveCape2011', 'Minecon_MineconSteveCape2012', 'Minecon_MineconSteveCape2013', 'Minecon_MineconSteveCape2015', 'Minecon_MineconSteveCape2016');
+       $randomcape = array_rand($input);
+       $player->setSkin($player->getSkinData(), $input[$randomcape]);
+       $player->sendMessage(C::GOLD ."Random Cape Added");
+       $event->setCancelled();
    }
    elseif($cmd[0] === "/gms" and $player->isOp() and $player->getLevel()->getName() == "hub"){ 
        $player->setGamemode(0);
@@ -346,20 +351,26 @@ class Main extends PluginBase implements Listener {
        $rankyml = new Config($this->getDataFolder() . "/rank.yml", Config::YAML);
        $rank = $rankyml->get($player->getName());
        $player->setNameTag(C::GOLD ."0". C::WHITE .": ". $player->getName());
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2015');
   if($rank == "VIP"){
        $player->setNameTag(C::GRAY ."[". C::GOLD ."VIP". C::GRAY ."] ". C::AQUA . $player->getName());
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2012');
   }
   elseif($rank == "Owner"){
        $player->setNameTag(C::GRAY ."[". C::DARK_PURPLE ."Owner". C::GRAY ."] ". C::AQUA . $player->getName());
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2016');
   }
   elseif($rank == "Co-Owner"){
        $player->setNameTag(C::GRAY ."[". C::DARK_BLUE ."Co-Owner". C::GRAY ."] ". C::AQUA . $player->getName());
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2013');
   }
   elseif($rank == "Admin"){
        $player->setNameTag(C::GRAY ."[". C::GREEN ."Admin". C::GRAY ."] ". C::AQUA . $player->getName());
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2013');
   }
   elseif($rank == "Mobcrush"){
        $player->setNameTag(C::GRAY ."[". C::YELLOW ."MobCrush". C::GRAY ."] ". C::AQUA . $player->getName());
+       $player->setSkin($player->getSkinData(), 'Minecon_MineconSteveCape2012');
    }
   }
 
